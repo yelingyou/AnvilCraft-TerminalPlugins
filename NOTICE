@@ -1,0 +1,84 @@
+AnvilCraft-TerminalPlugins — Third-Party Notices / 第三方声明
+
+This mod (the "Project") is licensed under the GNU Lesser General Public
+License v3.0 or later (LGPL-3.0-or-later). See LICENSE for the full text.
+
+本模组以 GNU LGPL-3.0-or-later 发布，完整文本见 LICENSE。
+
+--------------------------------------------------------------------------------
+1. AnvilCraft (铁砧工艺)
+--------------------------------------------------------------------------------
+   Author / 作者 : Anvil-Dev team (Gugle and contributors)
+   License / 许可: LGPL-3.0
+   Home          : https://github.com/Anvil-Dev/AnvilCraft
+
+   The Project is an addon for AnvilCraft. It depends on AnvilCraft at runtime
+   and does not bundle AnvilCraft code or assets.
+   Parts of the build scaffolding (gradle/scripts/*.gradle, settings.gradle,
+   .gitignore, .github workflows) were derived from the AnvilCraft repository
+   and the official addon template, both maintained by the Anvil-Dev team.
+
+   本项目是铁砧工艺的附属模组，运行时依赖 AnvilCraft，不打包其代码或资源。
+   构建脚手架（gradle/scripts/*.gradle、settings.gradle、.gitignore、.github 工作流）
+   派生自 Anvil-Dev 团队的 AnvilCraft 仓库与官方附属模板。
+
+--------------------------------------------------------------------------------
+2. AnvilCraft Addon Template (官方附属模板)
+--------------------------------------------------------------------------------
+   Author / 作者 : Anvil-Dev team
+   Home          : https://github.com/Anvil-Dev/AnvilCraftAddonTemplate
+   Note          : The repository carries no license file; only the generic
+                   project scaffolding was reused for this Project.
+
+--------------------------------------------------------------------------------
+3. AnvilLib
+--------------------------------------------------------------------------------
+   Author / 作者 : Anvil-Dev team
+   License / 许可: LGPL-3.0 (as part of the AnvilCraft ecosystem)
+   Note          : Used as a compile/runtime library (Registrum registration,
+                   configuration, data generation). Not bundled.
+   说明          : 作为编译/运行时库使用（Registrum 注册、配置、数据生成），不打包。
+
+--------------------------------------------------------------------------------
+4. Sophisticated Backpacks / Sophisticated Core (精妙背包)
+--------------------------------------------------------------------------------
+   Author / 作者 : P3pp3rF1y (and Ridanisaurus for art)
+   License / 许可: All Rights Reserved
+   Home          : https://github.com/P3pp3rF1y/SophisticatedBackpacks
+
+   These projects were consulted ONLY as a design reference for the plugin
+   (upgrade) model and for the semantics of the alchemy upgrade.
+   NO source code, assets or data files from these projects are copied,
+   included or redistributed by this Project.
+
+   本项目仅把它们作为「插件（升级）模型」与「炼金升级语义」的设计参考。
+   未复制、包含或再分发其中任何源代码、资源或数据文件。
+
+--------------------------------------------------------------------------------
+5. NeoForge / MinecraftForge
+--------------------------------------------------------------------------------
+   License / 许可: LGPL-2.1 (NeoForge), LGPL-2.1 (MinecraftForge)
+   Home          : https://github.com/neoforged/NeoForge
+   Note          : Mod loader / API used by this Project. Not bundled.
+
+--------------------------------------------------------------------------------
+6. Minecraft
+--------------------------------------------------------------------------------
+   Copyright (C) Mojang Studios / Microsoft
+   This Project contains no Minecraft assets. The textures shipped with this mod
+   were generated procedurally by the author from scratch and are original works,
+   released under LGPL-3.0 together with this Project.
+
+   本项目不包含任何 Minecraft 官方资源；模组内的贴图由作者程序化生成，属原创，
+   随本项目以 LGPL-3.0 发布。
+
+--------------------------------------------------------------------------------
+7. Disclaimer / 免责声明
+--------------------------------------------------------------------------------
+   This Project is not affiliated with, endorsed by or sponsored by AnvilCraft,
+   Sophisticated Backpacks, NeoForge or Mojang. All trademarks and names belong
+   to their respective owners.
+
+   本项目与铁砧工艺、精妙背包、NeoForge、Mojang 均无隶属或赞助关系，
+   相关名称与商标归各自所有者所有。
+

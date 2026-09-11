@@ -1,0 +1,75 @@
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * Copyright (C) 2026 AnvilCraft-TerminalPlugins contributors
+ *
+ * This file is part of AnvilCraft-TerminalPlugins, an addon for AnvilCraft.
+ * Licensed under the GNU Lesser General Public License v3.0 or later.
+ * See the LICENSE file in the project root for the full license text.
+ */
+package dev.anvilcraft.addon.terminalplugins.init;
+
+import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
+import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.InstalledPlugins;
+import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Consumer;
+
+public class AddonDataComponents {
+    public static final DeferredRegister<DataComponentType<?>> DR = DeferredRegister.create(
+        Registries.DATA_COMPONENT_TYPE,
+        AnvilCraftTerminalPlugins.MOD_ID
+    );
+
+    /** 终端物品上已安装的插件列表。 */
+    public static final DataComponentType<InstalledPlugins> INSTALLED_PLUGINS = AddonDataComponents.register(
+        "installed_plugins",
+        b -> b.persistent(InstalledPlugins.CODEC).networkSynchronized(InstalledPlugins.STREAM_CODEC)
+    );
+
+    /** 插件自身的启用开关（面板里可以单独关掉某个插件）。 */
+    public static final DataComponentType<Boolean> PLUGIN_ENABLED = AddonDataComponents.register(
+        "plugin_enabled",
+        b -> b.persistent(com.mojang.serialization.Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL)
+    );
+
+    public static final DataComponentType<MagnetSettings> MAGNET_SETTINGS = AddonDataComponents.register(
+        "magnet_settings",
+        b -> b.persistent(MagnetSettings.CODEC).networkSynchronized(MagnetSettings.STREAM_CODEC)
+    );
+
+    public static final DataComponentType<AutoCookingSettings> COOKING_SETTINGS = AddonDataComponents.register(
+        "cooking_settings",
+        b -> b.persistent(AutoCookingSettings.CODEC).networkSynchronized(AutoCookingSettings.STREAM_CODEC)
+    );
+
+    public static final DataComponentType<FeedingSettings> FEEDING_SETTINGS = AddonDataComponents.register(
+        "feeding_settings",
+        b -> b.persistent(FeedingSettings.CODEC).networkSynchronized(FeedingSettings.STREAM_CODEC)
+    );
+
+    /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */
+    public static final DataComponentType<AlchemySettings> ALCHEMY_SETTINGS = AddonDataComponents.register(
+        "alchemy_settings",
+        b -> b.persistent(AlchemySettings.CODEC).networkSynchronized(AlchemySettings.STREAM_CODEC)
+    );
+
+    private static <T> DataComponentType<T> register(String name, Consumer<DataComponentType.Builder<T>> customizer) {
+        DataComponentType.Builder<T> builder = DataComponentType.builder();
+        customizer.accept(builder);
+        DataComponentType<T> type = builder.build();
+        AddonDataComponents.DR.register(name, () -> type);
+        return type;
+    }
+
+    public static void register(IEventBus modEventBus) {
+        AddonDataComponents.DR.register(modEventBus);
+    }
+}

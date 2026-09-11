@@ -1,0 +1,68 @@
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ * Copyright (C) 2026 AnvilCraft-TerminalPlugins contributors
+ *
+ * This file is part of AnvilCraft-TerminalPlugins, an addon for AnvilCraft.
+ * Licensed under the GNU Lesser General Public License v3.0 or later.
+ * See the LICENSE file in the project root for the full license text.
+ */
+package dev.anvilcraft.addon.terminalplugins.block;
+
+import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+
+import javax.annotation.Nullable;
+
+/**
+ * 插件安装台：右键打开界面，把插件安装到终端上或从终端上取下。
+ */
+public class PluginStationBlock extends Block implements EntityBlock {
+    public PluginStationBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(
+        BlockState state,
+        Level level,
+        BlockPos pos,
+        Player player,
+        BlockHitResult hitResult
+    ) {
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (level.getBlockEntity(pos) instanceof PluginStationBlockEntity station) {
+            station.applyPlugins();
+        }
+        MenuProvider provider = new SimpleMenuProvider(
+            (containerId, inventory, p) -> new dev.anvilcraft.addon.terminalplugins.inventory.PluginStationMenu(
+                containerId, inventory, pos
+            ),
+            Component.translatable("container.anvilcraft_terminal_plugins.plugin_station")
+        );
+        player.openMenu(provider, pos);
+        return InteractionResult.CONSUME;
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new PluginStationBlockEntity(
+            dev.anvilcraft.addon.terminalplugins.init.AddonBlockEntities.PLUGIN_STATION.get(),
+            pos,
+            state
+        );
+    }
+}
