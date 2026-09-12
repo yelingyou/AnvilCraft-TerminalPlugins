@@ -2,6 +2,20 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
+## 〇、第五轮（版本 1.7.2）：文案精简
+
+只改文字、不动逻辑：
+
+- 游戏内提示去掉实现细节与「教学式」解释（不再出现「按皇家锻造台语义」「本体的充能配方」「对应本体手册」这类说法）；
+- README 删掉整段的历史说明与辩解（刻意不做的插件、修掉的 bug 经过、早期配方冲突说明、工作台配方已删除的提醒等），
+  插件清单里的 `HasMobBlockItem#...` / `powerConverterEfficiency` / `AbstractProcessRecipe` 等实现细节换成玩家能看懂的话；
+- 英文语言由 `AddonLangHandler` 同步精简，并重新 `runData` 生成 `en_us` / `en_ud`。
+
+| 项 | 结果 |
+|---|---|
+| `runData` | BUILD SUCCESSFUL（英文语言已同步重新生成） |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.7.2.jar` |
+| `runServer` | `Done (20.625s)! For help, type "help"`，无报错 |
 ## 〇、第四轮需求（版本 1.7.1）：锻造三槽 + 修复「槽位标记不上」
 
 ### 1. 修复：输入槽点不进物品（真实 bug）
