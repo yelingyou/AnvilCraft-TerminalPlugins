@@ -31,8 +31,8 @@
 | 项 | 结果 |
 |---|---|
 | `compileJava` | BUILD SUCCESSFUL |
-| `runData build` | 见下方记录 |
-| `runServer` | 见下方记录 |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.7.0.jar` |
+| `runServer` | `Done (15.408s)! For help, type "help"`，无报错（新 payload 与执行页未影响专用服务器加载） |
 ## 〇、第二轮需求（版本 1.6.0）：充能 / 铁砧加工 / 删修复 / 安装台重做 / 铁砧工艺配方
 
 设计依据（全部来自实际核对，不是推测）见 `插件扩展计划2-充能与铁砧加工.md`。
