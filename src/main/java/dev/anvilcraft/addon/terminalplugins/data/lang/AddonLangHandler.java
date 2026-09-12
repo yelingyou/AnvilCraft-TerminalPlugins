@@ -31,7 +31,7 @@ AddonLangHandler.extra(
 AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.station.staging_slots", "Staging");
 AddonLangHandler.extra(
     "screen.anvilcraft_terminal_plugins.station.install_tip",
-    "Install the staged plugins into the terminal (staging never installs by itself)"
+    "Install the staged plugins into the terminal"
 );
 AddonLangHandler.extra(
     "screen.anvilcraft_terminal_plugins.station.uninstall_tip",
@@ -97,15 +97,15 @@ AddonLangHandler.extra(
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.charging_power_tip",
-            "Click to change the grid draw; recipes needing more power will not run"
+            "Click to change the grid draw"
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.charging_recipes_tip",
-            "On: run the mod's charging recipes with materials from the storage"
+            "On: run charging recipes with materials from the storage"
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.charging_items_tip",
-            "On: convert grid power into FE and charge the FE items you carry"
+            "On: charge the FE items you carry from the grid"
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.charging_idle",
@@ -138,7 +138,7 @@ AddonLangHandler.extra(
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.template", "Template (kept)");
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.template_slot_tip",
-            "Left click with a smithing template; royal forging table rules keep it"
+            "Left click with a smithing template (it is not consumed)"
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.output", "Out");
         AddonLangHandler.extra(
@@ -151,7 +151,7 @@ AddonLangHandler.extra(
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.smithing_now_tip",
-            "Royal forging table rules: the template is not consumed, base and addition are"
+            "Forge once: uses the tool and the metal, keeps the template"
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.stamping", "Stamping");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.crush", "Crushing");
@@ -167,15 +167,15 @@ AddonLangHandler.extra(
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.process_tip",
-            "Click to change the anvil processing method"
+            "Click to change the processing method"
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.process_now_tip",
-            "Only runs when clicked: uses materials from the storage"
+            "Process with materials from the storage"
         );
         AddonLangHandler.extra(
             "message.anvilcraft_terminal_plugins.nothing_to_process",
-            "Nothing could be processed (check the filter table and the process)"
+            "Nothing to process"
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.off", "Off");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.fill_buffer", "Fill buffer");
@@ -207,7 +207,7 @@ AddonLangHandler.extra(
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.mob_catcher_tip",
-            "On: also try hostile/neutral mobs, which still need Weakness to be caught"
+            "On: also try hostile and neutral mobs"
         );
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.xp_pump_plugin", "XP Pump Plugin");
         AddonLangHandler.extra(
@@ -230,7 +230,7 @@ AddonLangHandler.extra(
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.smithing_plugin", "Smithing Plugin");
         AddonLangHandler.extra(
             "plugin.anvilcraft_terminal_plugins.smithing_plugin.desc",
-            "Runs smithing table recipes (netherite upgrades, armour trims) with items from the storage"
+            "Forges with the tool, metal and template found in the storage (netherite upgrades, armour trims)"
         );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.smithing_tip",
