@@ -7,6 +7,7 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
@@ -36,6 +37,7 @@ public final class PluginViews {
             case COMPACTING -> new CompactingView();
             case ANVIL_REPAIR -> new AnvilRepairView();
             case FLUID -> new FluidView();
+            case TOOL_SWAP -> new ToolSwapView();
         };
     }
 
@@ -351,6 +353,37 @@ public final class PluginViews {
             ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
                 PluginActionPacket.ADJUST_FLUID_CAPACITY, mouseX, mouseY);
             ctx.pendingValue(1.0F);
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
+        }
+    }
+
+    // 工具切换：耐久阈值 / 作用槽位 / 旧工具去向 + 过滤表（留空 = 全部工具）
+    private static final class ToolSwapView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 3 * 18 + 6 + 54;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            ToolSwapSettings settings = plugin.getOrDefault(
+                AddonDataComponents.TOOL_SWAP_SETTINGS, ToolSwapSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.tool_swap_threshold", settings.thresholdPercent()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 18, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.tool_swap_target",
+                PluginViews.tr("screen.anvilcraft_terminal_plugins.swap_target."
+                    + settings.target().getSerializedName())),
+                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 36, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.tool_swap_return_worn",
+                settings.returnWorn() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.TOGGLE_TOOL_SWAP_RETURN, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.tool_swap_return_tip");
             PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
         }
     }

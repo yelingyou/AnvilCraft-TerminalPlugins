@@ -14,6 +14,7 @@ import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.InstalledPlugins;
@@ -90,6 +91,12 @@ public class AddonDataComponents {
             b -> b.persistent(net.neoforged.neoforge.fluids.FluidStack.CODEC)
                 .networkSynchronized(net.neoforged.neoforge.fluids.FluidStack.STREAM_CODEC)
         );
+
+    /** 工具切换插件配置。 */
+    public static final DataComponentType<ToolSwapSettings> TOOL_SWAP_SETTINGS = AddonDataComponents.register(
+        "tool_swap_settings",
+        b -> b.persistent(ToolSwapSettings.CODEC).networkSynchronized(ToolSwapSettings.STREAM_CODEC)
+    );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */
     public static final DataComponentType<AlchemySettings> ALCHEMY_SETTINGS = AddonDataComponents.register(

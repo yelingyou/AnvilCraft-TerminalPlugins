@@ -63,6 +63,26 @@ public class AddonLangHandler {
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.off", "Off");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.fill_buffer", "Fill buffer");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.empty_buffer", "Fill containers");
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.tool_swap_plugin", "Tool Swap Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.tool_swap_plugin.desc",
+            "Swaps in a less worn copy of the held tool taken from the storage"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.tool_swap_threshold",
+            "Swap below %s%% durability"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.tool_swap_target", "Slots: %s");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.tool_swap_return_worn",
+            "Store worn tool: %s"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.swap_target.main_hand", "Main hand only");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.swap_target.all_hotbar", "Whole hotbar");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.tool_swap_return_tip",
+            "On: worn tools go back into the storage; Off: they stay in your inventory"
+        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.keep_stacks", "Keep %s stacks");
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.compacting_plugin", "Compacting Plugin");
         AddonLangHandler.extra(

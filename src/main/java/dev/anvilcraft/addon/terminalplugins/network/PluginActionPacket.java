@@ -13,6 +13,7 @@ import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntit
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
@@ -69,6 +70,8 @@ public record PluginActionPacket(
     public static final int ADJUST_FLUID_BATCH = 15;
     /** 流体插件：缓冲容量（桶）。 */
     public static final int ADJUST_FLUID_CAPACITY = 16;
+    /** 工具切换插件：旧工具是否放回存储。 */
+    public static final int TOGGLE_TOOL_SWAP_RETURN = 17;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -275,6 +278,15 @@ public record PluginActionPacket(
                     fluidSettings.batch(),
                     Math.clamp(fluidSettings.capacityBuckets() + Math.round(packet.value()), 1, 64)
                 ));
+                return plugin;
+            });
+            case TOGGLE_TOOL_SWAP_RETURN -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                ToolSwapSettings toolSwapSettings = plugin.getOrDefault(
+                    AddonDataComponents.TOOL_SWAP_SETTINGS, ToolSwapSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.TOOL_SWAP_SETTINGS,
+                    toolSwapSettings.withReturnWorn(!toolSwapSettings.returnWorn())
+                );
                 return plugin;
             });
             default -> {

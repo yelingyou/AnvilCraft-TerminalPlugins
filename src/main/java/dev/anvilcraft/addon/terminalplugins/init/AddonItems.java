@@ -15,6 +15,7 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -102,6 +103,15 @@ public class AddonItems {
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
             .component(AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT))
         .lang("Terminal Fluid Plugin")
+        .register();
+
+    /** 工具切换插件：手持工具快坏掉时，从存储换一把同种且耐久更好的。 */
+    public static final ItemEntry<TerminalPluginItem> TOOL_SWAP_PLUGIN = REGISTRUM
+        .item("tool_swap_plugin", properties -> new TerminalPluginItem(PluginKind.TOOL_SWAP, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.TOOL_SWAP_SETTINGS, ToolSwapSettings.DEFAULT))
+        .lang("Terminal Tool Swap Plugin")
         .register();
 
     public static void register() {

@@ -15,6 +15,7 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -92,6 +93,7 @@ public class TerminalPluginItem extends Item {
             case COMPACTING -> TerminalPluginItem.cycleCompacting(stack, secondary);
             case ANVIL_REPAIR -> TerminalPluginItem.cycleAnvilRepair(stack, secondary);
             case FLUID -> TerminalPluginItem.cycleFluid(stack, secondary);
+            case TOOL_SWAP -> TerminalPluginItem.cycleToolSwap(stack, secondary);
         };
     }
 
@@ -215,6 +217,24 @@ public class TerminalPluginItem extends Item {
             "screen.anvilcraft_terminal_plugins.setting.fluid_mode",
             Component.translatable("screen.anvilcraft_terminal_plugins.fluid_mode."
                 + next.mode().getSerializedName()));
+    }
+
+    // 工具切换：主档位切耐久阈值，副档位切作用槽位
+    private static Component cycleToolSwap(ItemStack stack, boolean secondary) {
+        ToolSwapSettings settings = stack.getOrDefault(
+            AddonDataComponents.TOOL_SWAP_SETTINGS, ToolSwapSettings.DEFAULT);
+        if (secondary) {
+            ToolSwapSettings next = settings.nextTarget();
+            stack.set(AddonDataComponents.TOOL_SWAP_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.tool_swap_target",
+                Component.translatable("screen.anvilcraft_terminal_plugins.swap_target."
+                    + next.target().getSerializedName()));
+        }
+        ToolSwapSettings next = settings.nextThreshold();
+        stack.set(AddonDataComponents.TOOL_SWAP_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.tool_swap_threshold", next.thresholdPercent());
     }
 
     // 销毁：切换保留组数

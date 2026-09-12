@@ -105,8 +105,14 @@ public class FluidPlugin implements TerminalPlugin {
         return true;
     }
 
-    /** 没放过滤表就是全部容器；放了就按过滤表筛。 */
+    /** 过滤表留空 = 所有容器都允许；填了内容就只处理表里的容器。 */
     private static boolean matches(ItemStack stack, FilterContent filter) {
-        return filter == null || filter.filter(stack);
+        if (filter == null) {
+            return true;
+        }
+        if (filter.list().stream().allMatch(ItemStack::isEmpty)) {
+            return true;
+        }
+        return filter.filter(stack);
     }
 }
