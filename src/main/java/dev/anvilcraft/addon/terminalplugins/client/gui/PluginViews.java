@@ -8,6 +8,7 @@ import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
+import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
@@ -42,6 +43,7 @@ public final class PluginViews {
             case TOOL_SWAP -> new ToolSwapView();
             case MOB_CATCHER -> new MobCatcherView();
             case XP_PUMP -> new XpPumpView();
+            case SMITHING -> new SmithingView();
         };
     }
 
@@ -470,6 +472,26 @@ public final class PluginViews {
             ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
                 PluginActionPacket.ADJUST_XP_BATCH, mouseX, mouseY);
             ctx.pendingValue(1.0F);
+        }
+    }
+
+    // 锻造：每周期次数 + 过滤表（列出的物品才允许当基底）
+    private static final class SmithingView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 14 + 3 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            SmithingSettings settings = plugin.getOrDefault(
+                AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.batch", settings.batch()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.smithing_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
         }
     }
 

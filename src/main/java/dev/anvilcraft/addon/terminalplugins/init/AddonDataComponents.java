@@ -15,6 +15,7 @@ import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
+import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
@@ -111,6 +112,12 @@ public class AddonDataComponents {
     public static final DataComponentType<XpPumpSettings> XP_PUMP_SETTINGS = AddonDataComponents.register(
         "xp_pump_settings",
         b -> b.persistent(XpPumpSettings.CODEC).networkSynchronized(XpPumpSettings.STREAM_CODEC)
+    );
+
+    /** 锻造插件配置。 */
+    public static final DataComponentType<SmithingSettings> SMITHING_SETTINGS = AddonDataComponents.register(
+        "smithing_settings",
+        b -> b.persistent(SmithingSettings.CODEC).networkSynchronized(SmithingSettings.STREAM_CODEC)
     );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */

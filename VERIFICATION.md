@@ -2,6 +2,31 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
+## 〇、P3 收尾（版本 1.5.1）：锻造插件（合成扩展）
+
+### 1. 为什么是锻造台
+
+先核对本体：`ageratum/004_block/003_crate.md#合成窗口` 明确写「在仓库中放入工作台和切石机可以启用自带的合成窗口」，
+也就是说**存储内的合成只覆盖工作台 + 切石机**，锻造台（`RecipeType.SMITHING`）是空白 —— 这不是重复实现，才动手。
+
+### 2. 实现要点
+
+| 项 | 内容 |
+|---|---|
+| 配方来源 | `level.getRecipeManager().getAllRecipesFor(RecipeType.SMITHING)` |
+| 三件材料 | `SmithingRecipe#isBaseIngredient / isTemplateIngredient / isAdditionIngredient` 三个**本体自带的谓词**筛选，不自己解析配方 |
+| 校验 | 取出前后各跑一次 `recipe.matches(SmithingRecipeInput, Level)`；只有成品 `assemble(...)` 非空才真正消耗 |
+| 回滚 | 三件材料是分三次 `extractFirst` 的，任一步失败（或校验失败、成品为空）都会把**已取出的部分原样插回**存储 |
+| 过滤表 | 列出**允许当基底的物品**；留空 = 什么都不做（消耗型插件的统一语义），避免悄悄消耗下界合金锭 / 模板 |
+
+### 3. 验证
+
+| 项 | 结果 |
+|---|---|
+| `compileJava` | BUILD SUCCESSFUL（`SmithingSettings` / `SmithingPlugin`） |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.5.1.jar` |
+| `runServer` | `Done (9.842s)! For help, type "help"`，无报错 |
+| 贴图 / 配方 | `textures/item/smithing_plugin.png`（锻造台 + 模板 + 锤子）、`recipe/smithing_plugin.json`（铁锭 + 红石 + 锻造台） |
 ## 〇、P3（版本 1.5.0）：生物捕捉插件 + 经验泵插件
 
 计划里 P3 的三项是「生物捕捉 / 经验泵 / 合成扩展」。前两项本轮落地，第三项排到下一轮（原因见末尾）。

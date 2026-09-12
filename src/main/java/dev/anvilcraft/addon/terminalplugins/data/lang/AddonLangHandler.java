@@ -110,6 +110,15 @@ public class AddonLangHandler {
             "screen.anvilcraft_terminal_plugins.setting.xp_gems_per_cycle",
             "Gems per cycle: %s"
         );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.smithing_plugin", "Smithing Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.smithing_plugin.desc",
+            "Runs smithing table recipes (netherite upgrades, armour trims) with items from the storage"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.smithing_tip",
+            "Click to change smithing per cycle; only items in the filter table may be used as a base"
+        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.off", "Off");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.store", "Store");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.withdraw", "Withdraw");

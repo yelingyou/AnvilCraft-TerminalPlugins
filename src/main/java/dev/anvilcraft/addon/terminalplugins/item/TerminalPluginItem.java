@@ -16,6 +16,7 @@ import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
+import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
@@ -98,6 +99,7 @@ public class TerminalPluginItem extends Item {
             case TOOL_SWAP -> TerminalPluginItem.cycleToolSwap(stack, secondary);
             case MOB_CATCHER -> TerminalPluginItem.cycleMobCatcher(stack, secondary);
             case XP_PUMP -> TerminalPluginItem.cycleXpPump(stack, secondary);
+            case SMITHING -> TerminalPluginItem.cycleSmithing(stack, secondary);
         };
     }
 
@@ -276,6 +278,15 @@ public class TerminalPluginItem extends Item {
             "screen.anvilcraft_terminal_plugins.setting.xp_mode",
             Component.translatable("screen.anvilcraft_terminal_plugins.xp_mode."
                 + next.mode().getSerializedName()));
+    }
+
+    // 锻造：切换每周期锻造次数
+    private static Component cycleSmithing(ItemStack stack, boolean secondary) {
+        SmithingSettings settings = stack.getOrDefault(
+            AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT);
+        int next = TerminalPluginItem.nextInCycle(TerminalPluginItem.COMPACTING_BATCHES, settings.batch());
+        stack.set(AddonDataComponents.SMITHING_SETTINGS, settings.withBatch(next));
+        return Component.translatable("screen.anvilcraft_terminal_plugins.setting.batch", next);
     }
 
     // 销毁：切换保留组数

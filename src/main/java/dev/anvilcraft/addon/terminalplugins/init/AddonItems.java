@@ -16,6 +16,7 @@ import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
+import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
@@ -134,6 +135,15 @@ public class AddonItems {
             XpPumpSettings.DEFAULT
         ))
         .lang("Terminal XP Pump Plugin")
+        .register();
+
+    /** 锻造插件：用存储里的模板 / 基底 / 附加物完成锻造台配方。 */
+    public static final ItemEntry<TerminalPluginItem> SMITHING_PLUGIN = REGISTRUM
+        .item("smithing_plugin", properties -> new TerminalPluginItem(PluginKind.SMITHING, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT))
+        .lang("Terminal Smithing Plugin")
         .register();
 
     public static void register() {

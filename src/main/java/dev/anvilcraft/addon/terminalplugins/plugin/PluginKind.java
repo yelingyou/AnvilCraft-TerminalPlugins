@@ -40,6 +40,8 @@ public enum PluginKind {
     MOB_CATCHER("mob_catcher_plugin"),
     /** 经验泵：玩家经验与存储里的经验宝石互转。 */
     XP_PUMP("xp_pump_plugin"),
+    /** 锻造：用存储里的模板 / 基底 / 附加物完成锻造台配方（本体合成窗口没有锻造台）。 */
+    SMITHING("smithing_plugin"),
     ;
 
     private final String id;
