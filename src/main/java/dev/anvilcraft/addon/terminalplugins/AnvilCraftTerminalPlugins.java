@@ -36,7 +36,22 @@ public class AnvilCraftTerminalPlugins {
     );
     public static final Registrum REGISTRUM = Registrum.create(MOD_ID);
 
+    /** 条件编解码器注册表：给配方用的 {@code recipes_enabled} 条件。 */
+    public static final net.neoforged.neoforge.registries.DeferredRegister<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.conditions.ICondition>> CONDITIONS =
+        net.neoforged.neoforge.registries.DeferredRegister.create(
+            net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.CONDITION_CODECS,
+            MOD_ID
+        );
+
+    static {
+        CONDITIONS.register(
+            "recipes_enabled",
+            () -> dev.anvilcraft.addon.terminalplugins.data.ConfigCondition.CODEC
+        );
+    }
+
     public AnvilCraftTerminalPlugins(IEventBus modEventBus, ModContainer modContainer) {
+        CONDITIONS.register(modEventBus);
         AddonDataComponents.register(modEventBus);
         AddonItemGroups.register(modEventBus);
         AddonBlocks.register();

@@ -1,0 +1,22 @@
+{
+  "type": "anvilcraft:stamping",
+  "neoforge:conditions": [
+    {
+      "type": "anvilcraft_terminal_plugins:recipes_enabled"
+    }
+  ],
+  "ingredients": [
+    {
+      "count": 4,
+      "items": "minecraft:iron_block"
+    },
+    {
+      "items": "minecraft:anvil"
+    }
+  ],
+  "results": [
+    {
+      "id": "anvilcraft_terminal_plugins:plugin_station"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "type": "anvilcraft:charger_charging",
+  "neoforge:conditions": [
+    {
+      "type": "anvilcraft_terminal_plugins:recipes_enabled"
+    }
+  ],
+  "ingredient": {
+    "item": "anvilcraft_terminal_plugins:filter_plugin"
+  },
+  "power": -16,
+  "result": {
+    "count": 1,
+    "id": "anvilcraft_terminal_plugins:charging_plugin"
+  },
+  "time": 200
+}

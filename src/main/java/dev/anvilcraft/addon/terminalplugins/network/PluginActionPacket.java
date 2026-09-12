@@ -11,6 +11,7 @@ package dev.anvilcraft.addon.terminalplugins.network;
 import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
@@ -79,6 +80,12 @@ public record PluginActionPacket(
     public static final int ADJUST_XP_KEEP_LEVEL = 19;
     /** 经验泵：每周期宝石数。 */
     public static final int ADJUST_XP_BATCH = 20;
+    /** 充能插件：是否执行充能配方。 */
+    public static final int TOGGLE_CHARGING_RECIPES = 21;
+    /** 充能插件：是否给 FE 物品充电。 */
+    public static final int TOGGLE_CHARGING_ITEMS = 22;
+    /** 即时动作：铁砧加工一次（由插件自己实现 onAction）。 */
+    public static final int ANVIL_PROCESS_NOW = 23;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -323,6 +330,41 @@ public record PluginActionPacket(
                 );
                 return plugin;
             });
+            case TOGGLE_CHARGING_RECIPES -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                ChargingSettings chargingSettings = plugin.getOrDefault(
+                    AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.CHARGING_SETTINGS,
+                    chargingSettings.withRunRecipes(!chargingSettings.runRecipes())
+                );
+                return plugin;
+            });
+            case TOGGLE_CHARGING_ITEMS -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                ChargingSettings chargingSettings = plugin.getOrDefault(
+                    AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.CHARGING_SETTINGS,
+                    chargingSettings.withChargeItems(!chargingSettings.chargeItems())
+                );
+                return plugin;
+            });
+            case ANVIL_PROCESS_NOW -> {
+                ItemStack pluginStack = TerminalPluginManager.installed(terminal).get(packet.pluginIndex());
+                TerminalPlugin plugin = TerminalPluginRegistry.behaviorOf(pluginStack).orElse(null);
+                if (plugin != null) {
+                    TerminalStorage storage = TerminalStorageResolver.resolve(player, terminal);
+                    boolean handled = plugin.onAction(
+                        new PluginContext(player, terminal, pluginStack, storage, player.tickCount),
+                        packet.action()
+                    );
+                    if (!handled) {
+                        PluginActionPacket.sendFeedback(
+                            player,
+                            "message.anvilcraft_terminal_plugins.nothing_to_process"
+                        );
+                    }
+                }
+            }
             default -> {
             }
         }

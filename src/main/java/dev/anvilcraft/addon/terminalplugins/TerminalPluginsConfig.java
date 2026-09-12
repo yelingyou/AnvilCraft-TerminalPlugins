@@ -29,6 +29,9 @@ public class TerminalPluginsConfig {
     @Comment("在日志里打印插件派发信息，排查插件不生效时打开 / Log plugin dispatch details (for troubleshooting)")
     public boolean debugLogging = false;
 
+    @Comment("启用本模组物品的铁砧工艺化配方（冲压 / 充能 / 时移）/ Enable AnvilCraft-flavoured recipes for this mod's items")
+    public boolean enableAnvilCraftRecipes = true;
+
     @Comment("自动烹饪插件每次处理的最大物品数 / Max items handled per auto-cooking operation")
     @BoundedDiscrete(max = 64, min = 1)
     public int autoCookingBatchSize = 8;

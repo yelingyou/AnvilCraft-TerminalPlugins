@@ -68,6 +68,78 @@ AddonLangHandler.extra(
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_mode", "Mode: %s");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_batch", "Batch per cycle: %s");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_capacity", "Buffer: %s buckets");
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.charging_plugin", "Charging Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.charging_plugin.desc",
+            "Draws power from an AnvilCraft grid: runs charging recipes and charges FE items you carry"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.charging_power",
+            "Grid draw: %s kW"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.charging_recipes",
+            "Charging recipes: %s"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.charging_items",
+            "Charge FE items: %s"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.charging_power_tip",
+            "Click to change the grid draw; recipes needing more power will not run"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.charging_recipes_tip",
+            "On: run the mod's charging recipes with materials from the storage"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.charging_items_tip",
+            "On: convert grid power into FE and charge the FE items you carry"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.charging_idle",
+            "No charging recipe in progress"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.charging_progress",
+            "Charging %s (%s ticks)"
+        );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.anvil_process_plugin", "Anvil Process Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.anvil_process_plugin.desc",
+            "Runs the mod's anvil processing methods by hand, in batches, from the panel"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.process", "Process: %s");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.process_batch",
+            "Runs this time: %s"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.process_now", "Process now");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.stamping", "Stamping");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.crush", "Crushing");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.compress", "Compressing");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.unpack", "Unpacking");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.mesh", "Sifting");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.super_heating", "Super heating");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.time_warp", "Time warp");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.item_inject", "Mass inject");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.anvil_process.neutron_irradiation",
+            "Neutron irradiation"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.process_tip",
+            "Click to change the anvil processing method"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.process_now_tip",
+            "Only runs when clicked: uses materials from the storage"
+        );
+        AddonLangHandler.extra(
+            "message.anvilcraft_terminal_plugins.nothing_to_process",
+            "Nothing could be processed (check the filter table and the process)"
+        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.off", "Off");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.fill_buffer", "Fill buffer");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.empty_buffer", "Fill containers");

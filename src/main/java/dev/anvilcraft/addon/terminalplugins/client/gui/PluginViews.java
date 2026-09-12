@@ -5,6 +5,8 @@ import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -42,6 +44,8 @@ public final class PluginViews {
             case MOB_CATCHER -> new MobCatcherView();
             case XP_PUMP -> new XpPumpView();
             case SMITHING -> new SmithingView();
+            case CHARGING -> new ChargingView();
+            case ANVIL_PROCESS -> new AnvilProcessView();
         };
     }
 
@@ -469,6 +473,72 @@ public final class PluginViews {
                 pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
                 "screen.anvilcraft_terminal_plugins.panel.smithing_tip");
             PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
+        }
+    }
+
+    // 充能：申请功率 / 充能配方开关 / FE 物品充电开关 + 当前配方进度
+    private static final class ChargingView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 4 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            ChargingSettings settings = plugin.getOrDefault(
+                AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.charging_power", settings.powerKw()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.charging_power_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 18, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.charging_recipes",
+                settings.runRecipes() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.TOGGLE_CHARGING_RECIPES, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.charging_recipes_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 36, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.charging_items",
+                settings.chargeItems() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.TOGGLE_CHARGING_ITEMS, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.charging_items_tip");
+            String progress = settings.activeRecipe().isEmpty()
+                ? PluginViews.tr("screen.anvilcraft_terminal_plugins.panel.charging_idle")
+                : PluginViews.tr(
+                    "screen.anvilcraft_terminal_plugins.panel.charging_progress",
+                    settings.activeRecipe(),
+                    settings.progress());
+            graphics.drawString(minecraft.font, progress, x, y + 3 * 18 + 4, 0xFF9A9AA4, false);
+        }
+    }
+
+    // 铁砧加工：加工方式 / 批量 / 「开始加工」按钮 + 过滤表（允许被加工的输入）
+    private static final class AnvilProcessView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 3 * 18 + 6 + 54;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            AnvilProcessSettings settings = plugin.getOrDefault(
+                AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.process",
+                PluginViews.tr("screen.anvilcraft_terminal_plugins.anvil_process."
+                    + settings.process().getSerializedName())),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.process_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 18, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.process_batch", settings.batch()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 36, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.process_now"),
+                pluginIndex, -1, PluginActionPacket.ANVIL_PROCESS_NOW, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.process_now_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
         }
     }
 

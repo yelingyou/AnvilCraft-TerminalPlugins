@@ -2,6 +2,51 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
+## 〇、第二轮需求（版本 1.6.0）：充能 / 铁砧加工 / 删修复 / 安装台重做 / 铁砧工艺配方
+
+设计依据（全部来自实际核对，不是推测）见 `插件扩展计划2-充能与铁砧加工.md`。
+
+### 1. 充能插件
+
+| 项 | 实现 |
+|---|---|
+| 接电网 | `IDynamicPowerComponentHolder.of(player).anvilcraft$getPowerComponent()`，往 `getPowerConsumptions()` 里加 `new PowerConsumption(kW)`；`getPowerGrid() != null && isWorking()` 才算拿到电（与本体 `IonocraftBackpackItem` 同款做法） |
+| KW→FE | 直接读 `AnvilCraft.CONFIG.powerConverter.powerConverterEfficiency` / `powerConverterCountdown`；这条路径不乘 `powerConverterLoss`，因为反编译 `ChargerBlockEntity#tick` 确认本体充电器分支也没乘 |
+| 充能配方 | `ModRecipeTypes.CHARGER_CHARGING_TYPE` + `ChargerChargingRecipe#getPower/getTime/getIngredient/getResult`；进度（配方 id + tick 数）存在插件物品的 `CHARGING_SETTINGS` 组件里 |
+| 时钟 | 派发器受 `pluginTickInterval`（默认 10）限制，一次派发按 10 tick 结算 FE 与配方进度，数值从配置读 |
+| 电源回收 | `ChargingPower.sweep(server)` 每 20 tick 跑一次：插件被拆下 / 关闭 / 玩家下线的用电登记会被删除，不会一直占着电网功率 |
+
+### 2. 铁砧加工插件（只手动、批量）
+
+- `intervalTicks()` 返回 **0**：派发器直接跳过，这个插件没有任何周期行为，只有面板上的「开始加工」会触发 `onAction`。
+- 支持 8 种纯物品进出的加工：冲压 / 粉碎 / 压缩 / 分解 / 过筛 / 超加热 / 时移 / 中子辐照；
+  配方判定与产出走本体 `AbstractProcessRecipe#getInputItems / getResultItems`，概率产出用 `ChanceItemStack#getResult(ServerLevel)` 掷。
+- 需要方块（`getInputBlocks()` 非空，如质量注入要指定方块）或需要炼药锅流水的配方被跳过 —— 存储物品的语境下没法诚实还原。
+- 取出前先校验数量，取出过程中任一步失败都把已取出的原样插回。
+
+### 3. 删除铁砧修复插件
+
+`ANVIL_REPAIR` 的物品、组件、视图、贴图、配方、语言键、行为实现全部移除（`src/main` 内已无 `anvil_repair` 引用）。
+
+### 4. 安装台修复
+
+- **真实 bug**：`PluginStationBlockEntity#setRemoved()` 里掉落内容物，而 `LevelChunk#clearAllBlockEntities()`（反编译确认）在区块卸载时也会调用它 → 走远一点终端和插件就掉一地。改成 `PluginStationBlock#onRemove(...)` 里掉落。
+- **逻辑理顺**：暂存槽不再自动安装；新增 `StationActionPacket`（安装全部 / 全部取下），替换掉原来只能卸载的 `UninstallPluginsPacket`；界面按钮从 2 个变成 3 个，并写清「台面上的终端不工作」。
+
+### 5. 物品的铁砧工艺化配方 + 配置开关
+
+- 新增 15 个数据包配方：13 条**冲压**（各插件与安装台）、1 条**时移**（铁砧加工插件）、1 条**充电器充能配方**（过滤插件 → 充能插件）。
+- 自定义配方条件 `anvilcraft_terminal_plugins:recipes_enabled`（NeoForge 1.21.1 的条件是 `CONDITION_CODECS` 编解码器注册表），读配置项 `enableAnvilCraftRecipes`（默认 true）。
+
+### 6. 验证
+
+| 项 | 结果 |
+|---|---|
+| `compileJava` | BUILD SUCCESSFUL（新增 5 个类：`ChargingSettings` / `ChargingPower` / `ChargingPlugin` / `AnvilProcessSettings` / `AnvilProcessPlugin` / `ConfigCondition` / `StationActionPacket`） |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.6.0.jar` |
+| 配方打包 | 已确认 jar 内含 `recipe/stamping/*.json` 13 个、`recipe/time_warp/anvil_process_plugin.json`、`recipe/charger_charging/charging_plugin.json` |
+| `runServer` | `Done (19.826s)! For help, type "help"`，无配方解析错误、无条件注册错误；配置文件 `anvilcraft_terminal_plugins-common.toml` 正常生成 |
+| 贴图 | `charging_plugin.png`、`anvil_process_plugin.png` 生成，物品贴图共 14 张 |
 ## 〇、P3 收尾（版本 1.5.1）：锻造插件（合成扩展）
 
 ### 1. 为什么是锻造台

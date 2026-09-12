@@ -1,0 +1,22 @@
+{
+  "type": "anvilcraft:stamping",
+  "neoforge:conditions": [
+    {
+      "type": "anvilcraft_terminal_plugins:recipes_enabled"
+    }
+  ],
+  "ingredients": [
+    {
+      "count": 3,
+      "items": "minecraft:iron_ingot"
+    },
+    {
+      "items": "minecraft:redstone"
+    }
+  ],
+  "results": [
+    {
+      "id": "anvilcraft_terminal_plugins:smithing_plugin"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "type": "anvilcraft:time_warp",
+  "neoforge:conditions": [
+    {
+      "type": "anvilcraft_terminal_plugins:recipes_enabled"
+    }
+  ],
+  "ingredients": [
+    {
+      "items": "minecraft:anvil"
+    }
+  ],
+  "results": [
+    {
+      "id": "anvilcraft_terminal_plugins:anvil_process_plugin"
+    }
+  ]
+}

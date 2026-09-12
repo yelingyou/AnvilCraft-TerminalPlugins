@@ -12,6 +12,8 @@ import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -112,6 +114,19 @@ public class AddonDataComponents {
         "smithing_settings",
         b -> b.persistent(SmithingSettings.CODEC).networkSynchronized(SmithingSettings.STREAM_CODEC)
     );
+
+    /** 充能插件配置（含充能配方进度）。 */
+    public static final DataComponentType<ChargingSettings> CHARGING_SETTINGS = AddonDataComponents.register(
+        "charging_settings",
+        b -> b.persistent(ChargingSettings.CODEC).networkSynchronized(ChargingSettings.STREAM_CODEC)
+    );
+
+    /** 铁砧加工插件配置。 */
+    public static final DataComponentType<AnvilProcessSettings> ANVIL_PROCESS_SETTINGS =
+        AddonDataComponents.register(
+            "anvil_process_settings",
+            b -> b.persistent(AnvilProcessSettings.CODEC).networkSynchronized(AnvilProcessSettings.STREAM_CODEC)
+        );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */
     public static final DataComponentType<AlchemySettings> ALCHEMY_SETTINGS = AddonDataComponents.register(

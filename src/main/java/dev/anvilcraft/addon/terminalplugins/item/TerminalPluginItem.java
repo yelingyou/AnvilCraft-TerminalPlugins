@@ -13,6 +13,8 @@ import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -98,6 +100,8 @@ public class TerminalPluginItem extends Item {
             case MOB_CATCHER -> TerminalPluginItem.cycleMobCatcher(stack, secondary);
             case XP_PUMP -> TerminalPluginItem.cycleXpPump(stack, secondary);
             case SMITHING -> TerminalPluginItem.cycleSmithing(stack, secondary);
+            case CHARGING -> TerminalPluginItem.cycleCharging(stack, secondary);
+            case ANVIL_PROCESS -> TerminalPluginItem.cycleAnvilProcess(stack, secondary);
         };
     }
 
@@ -285,6 +289,43 @@ public class TerminalPluginItem extends Item {
         int next = TerminalPluginItem.nextInCycle(TerminalPluginItem.COMPACTING_BATCHES, settings.batch());
         stack.set(AddonDataComponents.SMITHING_SETTINGS, settings.withBatch(next));
         return Component.translatable("screen.anvilcraft_terminal_plugins.setting.batch", next);
+    }
+
+    // 充能：主档位切申请功率，副档位切「是否跑充能配方」
+    private static Component cycleCharging(ItemStack stack, boolean secondary) {
+        ChargingSettings settings = stack.getOrDefault(
+            AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT);
+        if (secondary) {
+            ChargingSettings next = settings.withRunRecipes(!settings.runRecipes());
+            stack.set(AddonDataComponents.CHARGING_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.charging_recipes",
+                Component.translatable(next.runRecipes()
+                    ? "screen.anvilcraft_terminal_plugins.setting.on"
+                    : "screen.anvilcraft_terminal_plugins.setting.off"));
+        }
+        ChargingSettings next = settings.nextPower();
+        stack.set(AddonDataComponents.CHARGING_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.charging_power", next.powerKw());
+    }
+
+    // 铁砧加工：主档位切加工方式，副档位切批量
+    private static Component cycleAnvilProcess(ItemStack stack, boolean secondary) {
+        AnvilProcessSettings settings = stack.getOrDefault(
+            AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT);
+        if (secondary) {
+            AnvilProcessSettings next = settings.nextBatch();
+            stack.set(AddonDataComponents.ANVIL_PROCESS_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.process_batch", next.batch());
+        }
+        AnvilProcessSettings next = settings.nextProcess();
+        stack.set(AddonDataComponents.ANVIL_PROCESS_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.process",
+            Component.translatable("screen.anvilcraft_terminal_plugins.anvil_process."
+                + next.process().getSerializedName()));
     }
 
     // 销毁：切换保留组数

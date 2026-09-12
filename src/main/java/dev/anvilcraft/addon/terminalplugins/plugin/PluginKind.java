@@ -40,6 +40,10 @@ public enum PluginKind {
     XP_PUMP("xp_pump_plugin"),
     /** 锻造：用存储里的模板 / 基底 / 附加物完成锻造台配方（本体合成窗口没有锻造台）。 */
     SMITHING("smithing_plugin"),
+    /** 充能：接入电网，跑本体充能配方 / 给 FE 物品充电。 */
+    CHARGING("charging_plugin"),
+    /** 铁砧加工：在界面里手动批量执行本体的铁砧加工方式。 */
+    ANVIL_PROCESS("anvil_process_plugin"),
     ;
 
     private final String id;

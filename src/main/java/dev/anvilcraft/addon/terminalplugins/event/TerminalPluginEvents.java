@@ -84,6 +84,17 @@ public class TerminalPluginEvents {
     }
 
     /**
+     * 每 20 tick 回收一次没人认领的电网用电登记（插件被拆下 / 关闭 / 玩家下线）。
+     */
+    @SubscribeEvent
+    public static void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event) {
+        if (event.getServer().getTickCount() % 20 != 0) {
+            return;
+        }
+        dev.anvilcraft.addon.terminalplugins.plugin.impl.ChargingPower.sweep(event.getServer());
+    }
+
+    /**
      * 找出玩家身上所有已安装插件的终端。
      *
      * <p>按物品堆栈实例去重：主手 / 副手与背包槽位指向同一个实例，避免同一终端被重复驱动。</p>

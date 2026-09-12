@@ -13,6 +13,8 @@ import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
+import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -134,6 +136,25 @@ public class AddonItems {
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
             .component(AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT))
         .lang("Terminal Smithing Plugin")
+        .register();
+
+    /** 充能插件：接入电网，跑本体充能配方并给 FE 物品充电。 */
+    public static final ItemEntry<TerminalPluginItem> CHARGING_PLUGIN = REGISTRUM
+        .item("charging_plugin", properties -> new TerminalPluginItem(PluginKind.CHARGING, properties))
+        .properties(properties -> properties.component(
+            AddonDataComponents.CHARGING_SETTINGS,
+            ChargingSettings.DEFAULT
+        ))
+        .lang("Terminal Charging Plugin")
+        .register();
+
+    /** 铁砧加工插件：在界面里手动批量执行本体的铁砧加工方式。 */
+    public static final ItemEntry<TerminalPluginItem> ANVIL_PROCESS_PLUGIN = REGISTRUM
+        .item("anvil_process_plugin", properties -> new TerminalPluginItem(PluginKind.ANVIL_PROCESS, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT))
+        .lang("Terminal Anvil Process Plugin")
         .register();
 
     public static void register() {
