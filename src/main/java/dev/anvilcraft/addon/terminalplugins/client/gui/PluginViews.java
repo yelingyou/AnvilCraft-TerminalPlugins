@@ -1,7 +1,11 @@
 package dev.anvilcraft.addon.terminalplugins.client.gui;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
+import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
@@ -28,6 +32,10 @@ public final class PluginViews {
             case AUTO_COOKING -> new CookingView();
             case FEEDING -> new FeedingView();
             case ALCHEMY -> new AlchemyView();
+            case DEPOSIT -> new DepositView();
+            case VOID -> new VoidView();
+            case COMPACTING -> new CompactingView();
+            case ANVIL_REPAIR -> new AnvilRepairView();
         };
     }
 
@@ -221,6 +229,112 @@ public final class PluginViews {
             ctx.smallButton(graphics, minecraft, x + width - 12, rowY + 1, 12, "+", pluginIndex, -1,
                 PluginActionPacket.ADJUST_ALCHEMY_RADIUS, mouseX, mouseY);
             ctx.pendingValue(1.0F);
+        }
+    }
+
+    // 共用的 6x3 过滤网格
+    private static void drawFilterGrid(PluginSettingsView.Ctx ctx, GuiGraphics graphics, ItemStack plugin,
+                                        int pluginIndex, int x, int y, int mouseX, int mouseY) {
+        FilterContent content = plugin.getOrDefault(ModComponents.FILTER_CONTENT, new FilterContent());
+        for (int slot = 0; slot < 18; slot++) {
+            int column = slot % 6;
+            int row = slot / 6;
+            ItemStack shown = slot < content.list().size() ? content.list().get(slot) : ItemStack.EMPTY;
+            ctx.ghostSlot(graphics, x + column * 18, y + row * 18, shown, pluginIndex, slot,
+                PluginActionPacket.SET_FILTER_SLOT, "screen.anvilcraft_terminal_plugins.panel.filter_slot_tip");
+        }
+    }
+
+    // 一键存入：过滤表 + 两个跳过开关 + 立即存入按钮
+    private static final class DepositView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 3 * 18 + 18 + 16;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            DepositSettings settings = plugin.getOrDefault(
+                AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width / 2 - 1, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.skip_hotbar",
+                settings.skipHotbar() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.settingButton(graphics, minecraft, x + width / 2 + 1, y, width / 2 - 1, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.skip_armor",
+                settings.skipArmor() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 16, mouseX, mouseY);
+            ctx.settingButton(graphics, minecraft, x, y + 16 + 54 + 2, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.deposit_now"),
+                pluginIndex, -1, PluginActionPacket.DEPOSIT_NOW, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.deposit_tip");
+        }
+    }
+
+    // 销毁：过滤表 + 保留组数
+    private static final class VoidView implements PluginSettingsView {
+        private static final int[] KEEP_STACKS = {0, 1, 2, 4, 8, 16, 64};
+
+        @Override
+        public int height(ItemStack plugin) {
+            return 14 + 3 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            VoidSettings settings = plugin.getOrDefault(AddonDataComponents.VOID_SETTINGS, VoidSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.keep_stacks", settings.keepStacks()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
+        }
+    }
+
+    // 压缩：每次处理组数 + 过滤表
+    private static final class CompactingView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 14 + 3 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            CompactingSettings settings = plugin.getOrDefault(
+                AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.batch", settings.batch()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
+        }
+    }
+
+    // 铁砧修复：每次修复点数 + 过滤表（材料）
+    private static final class AnvilRepairView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 14 + 3 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            AnvilRepairSettings settings = plugin.getOrDefault(
+                AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT);
+            String label = settings.repairPerMaterial() == 0
+                ? PluginViews.tr("screen.anvilcraft_terminal_plugins.setting.repair_quarter")
+                : PluginViews.tr("screen.anvilcraft_terminal_plugins.setting.repair_amount", settings.repairPerMaterial());
+            ctx.settingButton(graphics, minecraft, x, y, width, label,
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
         }
     }
 

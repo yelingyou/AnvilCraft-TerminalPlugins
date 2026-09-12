@@ -35,6 +35,15 @@ public interface TerminalPlugin {
      *
      * @return 允许入库返回 {@code true}
      */
+    /**
+     * 即时动作（面板按钮触发）：返回 {@code true} 表示已处理。
+     *
+     * @param action {@code PluginActionPacket} 里的动作常量
+     */
+    default boolean onAction(PluginContext context, int action) {
+        return false;
+    }
+
     default boolean allowsInsert(PluginContext context, ItemStack stack) {
         return true;
     }

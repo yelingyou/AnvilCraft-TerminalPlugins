@@ -14,6 +14,11 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
+import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
+import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPlugin;
+import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPluginRegistry;
+import dev.anvilcraft.addon.terminalplugins.plugin.TerminalStorage;
+import dev.anvilcraft.addon.terminalplugins.plugin.TerminalStorageResolver;
 import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPluginManager;
 import dev.dubhe.anvilcraft.init.item.ModComponents;
 import dev.dubhe.anvilcraft.item.property.component.FilterContent;
@@ -59,6 +64,8 @@ public record PluginActionPacket(
     public static final int SET_FILTER_SLOT = 11;
     public static final int ADJUST_MAGNET_RANGE = 12;
     public static final int ADJUST_FEEDING_THRESHOLD = 13;
+    /** 即时动作：一键存入（由插件自己实现 onAction）。 */
+    public static final int DEPOSIT_NOW = 14;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -247,6 +254,17 @@ public record PluginActionPacket(
                 ));
                 return plugin;
             });
+            case DEPOSIT_NOW -> {
+                ItemStack pluginStack = TerminalPluginManager.installed(terminal).get(packet.pluginIndex());
+                TerminalPlugin plugin = TerminalPluginRegistry.behaviorOf(pluginStack).orElse(null);
+                if (plugin != null) {
+                    TerminalStorage storage = TerminalStorageResolver.resolve(player, terminal);
+                    plugin.onAction(
+                        new PluginContext(player, terminal, pluginStack, storage, player.tickCount),
+                        packet.action()
+                    );
+                }
+            }
             default -> {
             }
         }

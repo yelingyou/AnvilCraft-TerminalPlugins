@@ -9,7 +9,11 @@
 package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
+import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
@@ -62,6 +66,42 @@ public class AddonItems {
         .item("alchemy_plugin", properties -> new TerminalPluginItem(PluginKind.ALCHEMY, properties))
         .properties(properties -> properties.component(AddonDataComponents.ALCHEMY_SETTINGS, AlchemySettings.DEFAULT))
         .lang("Terminal Alchemy Plugin")
+        .register();
+
+    /** 一键存入插件：把背包里匹配过滤的物品一次存进存储。 */
+    public static final ItemEntry<TerminalPluginItem> DEPOSIT_PLUGIN = REGISTRUM
+        .item("deposit_plugin", properties -> new TerminalPluginItem(PluginKind.DEPOSIT, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT))
+        .lang("Terminal Deposit Plugin")
+        .register();
+
+    /** 销毁插件：匹配过滤的物品只保留指定组数。 */
+    public static final ItemEntry<TerminalPluginItem> VOID_PLUGIN = REGISTRUM
+        .item("void_plugin", properties -> new TerminalPluginItem(PluginKind.VOID, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.VOID_SETTINGS, VoidSettings.DEFAULT))
+        .lang("Terminal Void Plugin")
+        .register();
+
+    /** 压缩插件：9 个同类物品自动压成 1 个。 */
+    public static final ItemEntry<TerminalPluginItem> COMPACTING_PLUGIN = REGISTRUM
+        .item("compacting_plugin", properties -> new TerminalPluginItem(PluginKind.COMPACTING, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT))
+        .lang("Terminal Compacting Plugin")
+        .register();
+
+    /** 铁砧修复插件：用存储里的材料修复受损装备。 */
+    public static final ItemEntry<TerminalPluginItem> ANVIL_REPAIR_PLUGIN = REGISTRUM
+        .item("anvil_repair_plugin", properties -> new TerminalPluginItem(PluginKind.ANVIL_REPAIR, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT))
+        .lang("Terminal Anvil Repair Plugin")
         .register();
 
     public static void register() {

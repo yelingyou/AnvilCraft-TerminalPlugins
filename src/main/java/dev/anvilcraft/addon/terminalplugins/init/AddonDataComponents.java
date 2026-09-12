@@ -10,7 +10,11 @@ package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
+import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.InstalledPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
@@ -53,6 +57,30 @@ public class AddonDataComponents {
     public static final DataComponentType<FeedingSettings> FEEDING_SETTINGS = AddonDataComponents.register(
         "feeding_settings",
         b -> b.persistent(FeedingSettings.CODEC).networkSynchronized(FeedingSettings.STREAM_CODEC)
+    );
+
+    /** 一键存入插件。 */
+    public static final DataComponentType<DepositSettings> DEPOSIT_SETTINGS = AddonDataComponents.register(
+        "deposit_settings",
+        b -> b.persistent(DepositSettings.CODEC).networkSynchronized(DepositSettings.STREAM_CODEC)
+    );
+
+    /** 销毁插件。 */
+    public static final DataComponentType<VoidSettings> VOID_SETTINGS = AddonDataComponents.register(
+        "void_settings",
+        b -> b.persistent(VoidSettings.CODEC).networkSynchronized(VoidSettings.STREAM_CODEC)
+    );
+
+    /** 压缩插件。 */
+    public static final DataComponentType<CompactingSettings> COMPACTING_SETTINGS = AddonDataComponents.register(
+        "compacting_settings",
+        b -> b.persistent(CompactingSettings.CODEC).networkSynchronized(CompactingSettings.STREAM_CODEC)
+    );
+
+    /** 铁砧修复插件。 */
+    public static final DataComponentType<AnvilRepairSettings> ANVIL_REPAIR_SETTINGS = AddonDataComponents.register(
+        "anvil_repair_settings",
+        b -> b.persistent(AnvilRepairSettings.CODEC).networkSynchronized(AnvilRepairSettings.STREAM_CODEC)
     );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */

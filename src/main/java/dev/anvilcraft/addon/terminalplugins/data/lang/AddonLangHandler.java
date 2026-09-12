@@ -47,6 +47,40 @@ public class AddonLangHandler {
             "plugin.anvilcraft_terminal_plugins.feeding_plugin.desc",
             "Feeds the owner from the bound storage when hungry"
         );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.deposit_plugin", "Deposit Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.deposit_plugin.desc",
+            "Stores matching items from your inventory at the press of a button"
+        );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.void_plugin", "Void Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.void_plugin.desc",
+            "Destroys matching items in the storage beyond the kept amount"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.skip_hotbar", "Skip hotbar %s");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.skip_armor", "Skip armor %s");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.deposit_now", "Deposit now");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.keep_stacks", "Keep %s stacks");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.deposit_tip",
+            "Click to move matching items into the storage"
+        );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.compacting_plugin", "Compacting Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.compacting_plugin.desc",
+            "Compacts 9 matching items into 1 using vanilla crafting recipes"
+        );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.anvil_repair_plugin", "Anvil Repair Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.anvil_repair_plugin.desc",
+            "Repairs damaged gear in the storage with matching materials"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.batch", "Per cycle: %s");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.repair_amount", "Repair %s per material");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.repair_quarter",
+            "Repair 1/4 of max durability per material"
+        );
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.alchemy_plugin", "Alchemy Plugin");
         AddonLangHandler.extra(
             "plugin.anvilcraft_terminal_plugins.alchemy_plugin.desc",

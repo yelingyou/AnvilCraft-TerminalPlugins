@@ -9,7 +9,11 @@
 package dev.anvilcraft.addon.terminalplugins.item;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
+import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
@@ -84,6 +88,10 @@ public class TerminalPluginItem extends Item {
             case FEEDING -> TerminalPluginItem.cycleFeeding(stack, secondary);
             case ALCHEMY -> TerminalPluginItem.cycleAlchemy(stack, secondary);
             case FILTER -> TerminalPluginItem.cycleFilter(stack, secondary);
+            case DEPOSIT -> TerminalPluginItem.cycleDeposit(stack, secondary);
+            case VOID -> TerminalPluginItem.cycleVoid(stack, secondary);
+            case COMPACTING -> TerminalPluginItem.cycleCompacting(stack, secondary);
+            case ANVIL_REPAIR -> TerminalPluginItem.cycleAnvilRepair(stack, secondary);
         };
     }
 
@@ -187,6 +195,56 @@ public class TerminalPluginItem extends Item {
             "tooltip.anvilcraft_terminal_plugins.alchemy.nearby",
             Component.translatable("tooltip.anvilcraft_terminal_plugins.alchemy.nearby." + next.nearby().getSerializedName())
         );
+    }
+
+    private static final int[] VOID_KEEP_STACKS = {0, 1, 2, 4, 8, 16, 64};
+
+    // 一键存入：主档位切是否跳过快捷栏，副档位切是否跳过盔甲
+    private static Component cycleDeposit(ItemStack stack, boolean secondary) {
+        DepositSettings settings = stack.getOrDefault(
+            AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT);
+        DepositSettings next = secondary
+            ? settings.withSkipArmor(!settings.skipArmor())
+            : settings.withSkipHotbar(!settings.skipHotbar());
+        stack.set(AddonDataComponents.DEPOSIT_SETTINGS, next);
+        return Component.translatable(secondary
+            ? "screen.anvilcraft_terminal_plugins.setting.skip_armor"
+            : "screen.anvilcraft_terminal_plugins.setting.skip_hotbar",
+            Component.translatable((secondary ? next.skipArmor() : next.skipHotbar())
+                ? "screen.anvilcraft_terminal_plugins.setting.on"
+                : "screen.anvilcraft_terminal_plugins.setting.off"));
+    }
+
+    // 销毁：切换保留组数
+    private static Component cycleVoid(ItemStack stack, boolean secondary) {
+        VoidSettings settings = stack.getOrDefault(AddonDataComponents.VOID_SETTINGS, VoidSettings.DEFAULT);
+        int next = TerminalPluginItem.nextInCycle(TerminalPluginItem.VOID_KEEP_STACKS, settings.keepStacks());
+        stack.set(AddonDataComponents.VOID_SETTINGS, settings.withKeepStacks(next));
+        return Component.translatable("screen.anvilcraft_terminal_plugins.setting.keep_stacks", next);
+    }
+
+    private static final int[] COMPACTING_BATCHES = {1, 2, 4, 8, 16};
+    private static final int[] REPAIR_AMOUNTS = {0, 25, 50, 100, 200, 500};
+
+    // 压缩：切换每次处理组数
+    private static Component cycleCompacting(ItemStack stack, boolean secondary) {
+        CompactingSettings settings = stack.getOrDefault(
+            AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT);
+        int next = TerminalPluginItem.nextInCycle(TerminalPluginItem.COMPACTING_BATCHES, settings.batch());
+        stack.set(AddonDataComponents.COMPACTING_SETTINGS, settings.withBatch(next));
+        return Component.translatable("screen.anvilcraft_terminal_plugins.setting.batch", next);
+    }
+
+    // 铁砧修复：切换每次消耗 1 个材料修复的耐久点数（0 = 最大耐久的四分之一）
+    private static Component cycleAnvilRepair(ItemStack stack, boolean secondary) {
+        AnvilRepairSettings settings = stack.getOrDefault(
+            AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT);
+        int next = TerminalPluginItem.nextInCycle(
+            TerminalPluginItem.REPAIR_AMOUNTS, settings.repairPerMaterial());
+        stack.set(AddonDataComponents.ANVIL_REPAIR_SETTINGS, settings.withRepairPerMaterial(next));
+        return next == 0
+            ? Component.translatable("screen.anvilcraft_terminal_plugins.setting.repair_quarter")
+            : Component.translatable("screen.anvilcraft_terminal_plugins.setting.repair_amount", next);
     }
 
     private static Component cycleFilter(ItemStack stack, boolean secondary) {

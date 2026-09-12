@@ -26,6 +26,15 @@ public enum PluginKind {
     FEEDING("feeding_plugin"),
     /** 炼金：在存储内自动酿造药水。 */
     ALCHEMY("alchemy_plugin"),
+    /** 一键存入：把玩家背包里匹配过滤的物品存进终端连接的存储。 */
+    DEPOSIT("deposit_plugin"),
+    // 说明：压缩与铁砧修复见下方 COMPACTING / ANVIL_REPAIR
+    /** 销毁：存储中匹配过滤的物品只保留指定组数，多余部分销毁。 */
+    VOID("void_plugin"),
+    /** 压缩：把存储里的 9 个同类物品自动压成 1 个。 */
+    COMPACTING("compacting_plugin"),
+    /** 铁砧修复：用存储里的材料修复受损装备。 */
+    ANVIL_REPAIR("anvil_repair_plugin"),
     ;
 
     private final String id;
