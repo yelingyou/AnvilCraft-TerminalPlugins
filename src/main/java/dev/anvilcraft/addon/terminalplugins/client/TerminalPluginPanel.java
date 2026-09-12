@@ -303,7 +303,11 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             value = -value;
         }
         ItemStack payload = ItemStack.EMPTY;
-        if (action == PluginActionPacket.SET_FILTER_SLOT || action == PluginActionPacket.SET_ALCHEMY_FILTER) {
+        if (action == PluginActionPacket.SET_FILTER_SLOT
+            || action == PluginActionPacket.SET_ALCHEMY_FILTER
+            || action == PluginActionPacket.SET_SAMPLE_SLOT
+            || action == PluginActionPacket.SET_SAMPLE_ADDITION
+            || action == PluginActionPacket.SET_SAMPLE_TEMPLATE) {
             Minecraft minecraft = Minecraft.getInstance();
             ItemStack carried = minecraft.player == null ? ItemStack.EMPTY : minecraft.player.containerMenu.getCarried();
             payload = button == 1 || carried.isEmpty() ? ItemStack.EMPTY : carried.copyWithCount(1);

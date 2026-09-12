@@ -133,6 +133,13 @@ AddonLangHandler.extra(
             "Open the run page: pick a recipe, set the input, see the output"
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.input", "In");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.tool", "Tool / base");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.metal", "Metal / addition");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.template", "Template (kept)");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.template_slot_tip",
+            "Left click with a smithing template; royal forging table rules keep it"
+        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.output", "Out");
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.exec.auto",

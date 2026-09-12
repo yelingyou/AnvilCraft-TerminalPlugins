@@ -80,7 +80,7 @@ public class SmithingPlugin implements TerminalPlugin {
             if (!filter.filter(base)) {
                 continue;
             }
-            // 输入槽指定了就只锻造这一种基底
+            // 工具槽指定了就只锻造这一种基底
             if (sample.hasSample() && !ItemStack.isSameItemSameComponents(base, sample.sample())) {
                 continue;
             }
@@ -101,8 +101,13 @@ public class SmithingPlugin implements TerminalPlugin {
         if (!recipe.isBaseIngredient(base)) {
             return false;
         }
-        ItemStack template = SmithingPlugin.peek(context, recipe::isTemplateIngredient);
-        ItemStack addition = SmithingPlugin.peek(context, recipe::isAdditionIngredient);
+        // 三个槽：模板槽 / 金属槽（附加物）优先用玩家指定的，留空才自动从存储里找
+        ItemStack template = sample.hasTemplate()
+            ? SmithingPlugin.pick(context, recipe::isTemplateIngredient, sample.template())
+            : SmithingPlugin.peek(context, recipe::isTemplateIngredient);
+        ItemStack addition = sample.hasAddition()
+            ? SmithingPlugin.pick(context, recipe::isAdditionIngredient, sample.addition())
+            : SmithingPlugin.peek(context, recipe::isAdditionIngredient);
         if (!recipe.matches(
             new SmithingRecipeInput(template, base.copyWithCount(1), addition),
             level
@@ -143,6 +148,19 @@ public class SmithingPlugin implements TerminalPlugin {
         context.insertIntoStorage(result);
         context.pluginStack().set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
         return true;
+    }
+
+    /** 槽里指定的物品：必须既满足配方判定、又确实在存储里（返回数量 1 的展示栈）。 */
+    private static ItemStack pick(PluginContext context, Predicate<ItemStack> matcher, ItemStack wanted) {
+        if (!matcher.test(wanted)) {
+            return ItemStack.EMPTY;
+        }
+        for (ItemStack type : context.storage().types()) {
+            if (matcher.test(type) && ItemStack.isSameItemSameComponents(type, wanted)) {
+                return type;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     /** 只读地找一个满足条件的存储物品类型（返回的是数量 1 的展示栈）。 */

@@ -70,6 +70,24 @@ public final class PluginExecViews {
         return y + 20;
     }
 
+    /** 一行「标签 + 槽」；{@code action < 0} 表示只读槽（输出）。 */
+    static int labeledSlot(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft,
+                           int x, int y, int width, String labelKey, ItemStack shown,
+                           int pluginIndex, int action, String tipKey) {
+        graphics.drawString(minecraft.font, PluginExecViews.tr(labelKey), x, y + 5, 0xFF9A9AA4, false);
+        int slotX = x + width - 16;
+        if (action < 0) {
+            graphics.fill(slotX, y, slotX + 16, y + 16, 0xFF4E7A4E);
+            graphics.fill(slotX + 1, y + 1, slotX + 15, y + 15, 0xFF2A3329);
+            if (!shown.isEmpty()) {
+                graphics.renderItem(shown, slotX + 1, y + 1);
+            }
+        } else {
+            ctx.ghostSlot(graphics, slotX, y, shown, pluginIndex, -1, action, tipKey);
+        }
+        return y + 18;
+    }
+
     private static String tr(String key, Object... args) {
         return net.minecraft.network.chat.Component.translatable(key, args).getString();
     }
@@ -104,11 +122,15 @@ public final class PluginExecViews {
         }
     }
 
-    /** 锻造：批次 / 输入输出槽 / 开始锻造（模板不消耗，同皇家锻造台）。 */
+    /**
+     * 锻造：工具 / 金属 / 模板 三个槽 + 输出槽 + 开始锻造。
+     *
+     * <p>对齐本体皇家锻造台的三个格子；模板只当钥匙，不会被消耗。</p>
+     */
     private static final class SmithingExecView implements PluginSettingsView {
         @Override
         public int height(ItemStack plugin) {
-            return 2 * 14 + 4 + 20 + 4;
+            return 14 + 4 + 4 * 18 + 4 + 20 + 4;
         }
 
         @Override
@@ -120,8 +142,20 @@ public final class PluginExecViews {
                 "screen.anvilcraft_terminal_plugins.setting.batch", settings.batch()),
                 pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
                 "screen.anvilcraft_terminal_plugins.panel.smithing_tip");
-            int slotY = PluginExecViews.slots(ctx, graphics, minecraft, plugin, pluginIndex, x, y + 16);
-            ctx.settingButton(graphics, minecraft, x, slotY, width, PluginExecViews.tr(
+            PluginSample sample = plugin.getOrDefault(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+            int rowY = y + 16;
+            rowY = PluginExecViews.labeledSlot(ctx, graphics, minecraft, x, rowY, width,
+                "screen.anvilcraft_terminal_plugins.exec.tool", sample.sample(), pluginIndex,
+                PluginActionPacket.SET_SAMPLE_SLOT, "screen.anvilcraft_terminal_plugins.panel.input_slot_tip");
+            rowY = PluginExecViews.labeledSlot(ctx, graphics, minecraft, x, rowY, width,
+                "screen.anvilcraft_terminal_plugins.exec.metal", sample.addition(), pluginIndex,
+                PluginActionPacket.SET_SAMPLE_ADDITION, "screen.anvilcraft_terminal_plugins.panel.input_slot_tip");
+            rowY = PluginExecViews.labeledSlot(ctx, graphics, minecraft, x, rowY, width,
+                "screen.anvilcraft_terminal_plugins.exec.template", sample.template(), pluginIndex,
+                PluginActionPacket.SET_SAMPLE_TEMPLATE, "screen.anvilcraft_terminal_plugins.panel.template_slot_tip");
+            rowY = PluginExecViews.labeledSlot(ctx, graphics, minecraft, x, rowY, width,
+                "screen.anvilcraft_terminal_plugins.exec.output", sample.lastOutput(), pluginIndex, -1, null);
+            ctx.settingButton(graphics, minecraft, x, rowY + 2, width, PluginExecViews.tr(
                 "screen.anvilcraft_terminal_plugins.setting.smithing_now"),
                 pluginIndex, -1, PluginActionPacket.SMITHING_NOW, mouseX, mouseY,
                 "screen.anvilcraft_terminal_plugins.panel.smithing_now_tip");

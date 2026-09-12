@@ -87,8 +87,12 @@ public record PluginActionPacket(
     public static final int TOGGLE_CHARGING_ITEMS = 22;
     /** 即时动作：铁砧加工一次（由插件自己实现 onAction）。 */
     public static final int ANVIL_PROCESS_NOW = 23;
-    /** 会执行配方的插件：设置输入槽（空物品 = 清空）。 */
+    /** 会执行配方的插件：设置主输入槽（空物品 = 清空）。 */
     public static final int SET_SAMPLE_SLOT = 24;
+    /** 锻造插件：设置金属（附加物）槽。 */
+    public static final int SET_SAMPLE_ADDITION = 26;
+    /** 锻造插件：设置模板槽。 */
+    public static final int SET_SAMPLE_TEMPLATE = 27;
     /** 即时动作：锻造一次（皇家锻造台语义）。 */
     public static final int SMITHING_NOW = 25;
 
@@ -370,17 +374,21 @@ public record PluginActionPacket(
                     }
                 }
             }
-            case SET_SAMPLE_SLOT -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
-                PluginSample sample = plugin.getOrDefault(
-                    AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
-                plugin.set(
-                    AddonDataComponents.PLUGIN_SAMPLE,
-                    sample.withSample(packet.filter().isEmpty()
+            case SET_SAMPLE_SLOT, SET_SAMPLE_ADDITION, SET_SAMPLE_TEMPLATE ->
+                TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                    PluginSample sample = plugin.getOrDefault(
+                        AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+                    ItemStack value = packet.filter().isEmpty()
                         ? ItemStack.EMPTY
-                        : packet.filter().copyWithCount(1))
-                );
-                return plugin;
-            });
+                        : packet.filter().copyWithCount(1);
+                    PluginSample next = switch (packet.action()) {
+                        case SET_SAMPLE_ADDITION -> sample.withAddition(value);
+                        case SET_SAMPLE_TEMPLATE -> sample.withTemplate(value);
+                        default -> sample.withSample(value);
+                    };
+                    plugin.set(AddonDataComponents.PLUGIN_SAMPLE, next);
+                    return plugin;
+                });
             default -> {
             }
         }
