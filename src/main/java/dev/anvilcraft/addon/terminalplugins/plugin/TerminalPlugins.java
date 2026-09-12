@@ -15,7 +15,9 @@ import dev.anvilcraft.addon.terminalplugins.plugin.impl.CompactingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FeedingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FilterPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FluidPlugin;
+import dev.anvilcraft.addon.terminalplugins.plugin.impl.MobCatcherPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.ToolSwapPlugin;
+import dev.anvilcraft.addon.terminalplugins.plugin.impl.XpPumpPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.MagnetPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.VoidPlugin;
 
@@ -37,5 +39,7 @@ public final class TerminalPlugins {
         TerminalPluginRegistry.register(new AnvilRepairPlugin());
         TerminalPluginRegistry.register(new FluidPlugin());
         TerminalPluginRegistry.register(new ToolSwapPlugin());
+        TerminalPluginRegistry.register(new MobCatcherPlugin());
+        TerminalPluginRegistry.register(new XpPumpPlugin());
     }
 }

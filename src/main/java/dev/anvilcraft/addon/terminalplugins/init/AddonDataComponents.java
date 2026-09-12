@@ -14,7 +14,9 @@ import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
+import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.InstalledPlugins;
@@ -96,6 +98,19 @@ public class AddonDataComponents {
     public static final DataComponentType<ToolSwapSettings> TOOL_SWAP_SETTINGS = AddonDataComponents.register(
         "tool_swap_settings",
         b -> b.persistent(ToolSwapSettings.CODEC).networkSynchronized(ToolSwapSettings.STREAM_CODEC)
+    );
+
+    /** 生物捕捉插件配置。 */
+    public static final DataComponentType<MobCatcherSettings> MOB_CATCHER_SETTINGS =
+        AddonDataComponents.register(
+            "mob_catcher_settings",
+            b -> b.persistent(MobCatcherSettings.CODEC).networkSynchronized(MobCatcherSettings.STREAM_CODEC)
+        );
+
+    /** 经验泵插件配置。 */
+    public static final DataComponentType<XpPumpSettings> XP_PUMP_SETTINGS = AddonDataComponents.register(
+        "xp_pump_settings",
+        b -> b.persistent(XpPumpSettings.CODEC).networkSynchronized(XpPumpSettings.STREAM_CODEC)
     );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */

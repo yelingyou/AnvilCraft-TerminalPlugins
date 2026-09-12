@@ -79,6 +79,48 @@ public class AddonLangHandler {
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.swap_target.main_hand", "Main hand only");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.swap_target.all_hotbar", "Whole hotbar");
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.mob_catcher_plugin", "Mob Catcher Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.mob_catcher_plugin.desc",
+            "Catches nearby mobs into empty resin blocks taken from the storage"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.mob_catcher_hostile",
+            "Hostile and neutral mobs: %s"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.mob_catcher_tip",
+            "On: also try hostile/neutral mobs, which still need Weakness to be caught"
+        );
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.xp_pump_plugin", "XP Pump Plugin");
+        AddonLangHandler.extra(
+            "plugin.anvilcraft_terminal_plugins.xp_pump_plugin.desc",
+            "Moves experience between you and exp gems kept in the storage"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.xp_mode", "Mode: %s");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.xp_store_level",
+            "Store above level %s"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.xp_keep_level",
+            "Withdraw below level %s"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.setting.xp_gems_per_cycle",
+            "Gems per cycle: %s"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.off", "Off");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.store", "Store");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.xp_mode.withdraw", "Withdraw");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.xp_store_tip",
+            "Above this level, spare experience becomes exp gems in the storage"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.xp_keep_tip",
+            "Below this level, exp gems from the storage become experience again"
+        );
         AddonLangHandler.extra(
             "screen.anvilcraft_terminal_plugins.panel.tool_swap_return_tip",
             "On: worn tools go back into the storage; Off: they stay in your inventory"

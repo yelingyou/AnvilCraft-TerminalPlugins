@@ -7,7 +7,9 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
+import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
@@ -38,6 +40,8 @@ public final class PluginViews {
             case ANVIL_REPAIR -> new AnvilRepairView();
             case FLUID -> new FluidView();
             case TOOL_SWAP -> new ToolSwapView();
+            case MOB_CATCHER -> new MobCatcherView();
+            case XP_PUMP -> new XpPumpView();
         };
     }
 
@@ -385,6 +389,87 @@ public final class PluginViews {
                 pluginIndex, -1, PluginActionPacket.TOGGLE_TOOL_SWAP_RETURN, mouseX, mouseY,
                 "screen.anvilcraft_terminal_plugins.panel.tool_swap_return_tip");
             PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
+        }
+    }
+
+    // 生物捕捉：搜索半径 + 是否连敌对 / 中立一起抓
+    private static final class MobCatcherView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 2 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            MobCatcherSettings settings = plugin.getOrDefault(
+                AddonDataComponents.MOB_CATCHER_SETTINGS, MobCatcherSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.range", settings.radius()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.settingButton(graphics, minecraft, x, y + 18, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.mob_catcher_hostile",
+                settings.allowHostile() ? PluginViews.on() : PluginViews.off()),
+                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.mob_catcher_tip");
+        }
+    }
+
+    // 经验泵：模式 / 存入阈值等级 / 取出保留等级 / 每周期宝石数
+    private static final class XpPumpView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 4 * 18;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            XpPumpSettings settings = plugin.getOrDefault(
+                AddonDataComponents.XP_PUMP_SETTINGS, XpPumpSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.xp_mode",
+                PluginViews.tr("screen.anvilcraft_terminal_plugins.xp_mode."
+                    + settings.mode().getSerializedName())),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            int rowY = y + 18;
+            ctx.smallButton(graphics, minecraft, x, rowY, 12, "-", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_STORE_LEVEL, mouseX, mouseY);
+            ctx.pendingValue(-1.0F);
+            ctx.settingButton(graphics, minecraft, x + 14, rowY, width - 28, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.xp_store_level", settings.storeLevel()),
+                pluginIndex, -1, PluginActionPacket.ADJUST_XP_STORE_LEVEL, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.xp_store_tip");
+            ctx.pendingValue(1.0F);
+            ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_STORE_LEVEL, mouseX, mouseY);
+            ctx.pendingValue(1.0F);
+            rowY += 18;
+            ctx.smallButton(graphics, minecraft, x, rowY, 12, "-", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_KEEP_LEVEL, mouseX, mouseY);
+            ctx.pendingValue(-1.0F);
+            ctx.settingButton(graphics, minecraft, x + 14, rowY, width - 28, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.xp_keep_level", settings.keepLevel()),
+                pluginIndex, -1, PluginActionPacket.ADJUST_XP_KEEP_LEVEL, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.xp_keep_tip");
+            ctx.pendingValue(1.0F);
+            ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_KEEP_LEVEL, mouseX, mouseY);
+            ctx.pendingValue(1.0F);
+            rowY += 18;
+            ctx.smallButton(graphics, minecraft, x, rowY, 12, "-", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_BATCH, mouseX, mouseY);
+            ctx.pendingValue(-1.0F);
+            ctx.settingButton(graphics, minecraft, x + 14, rowY, width - 28, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.xp_gems_per_cycle", settings.gemsPerCycle()),
+                pluginIndex, -1, PluginActionPacket.ADJUST_XP_BATCH, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.pendingValue(1.0F);
+            ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
+                PluginActionPacket.ADJUST_XP_BATCH, mouseX, mouseY);
+            ctx.pendingValue(1.0F);
         }
     }
 

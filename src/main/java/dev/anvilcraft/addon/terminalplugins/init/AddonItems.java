@@ -15,7 +15,9 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
+import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -112,6 +114,26 @@ public class AddonItems {
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
             .component(AddonDataComponents.TOOL_SWAP_SETTINGS, ToolSwapSettings.DEFAULT))
         .lang("Terminal Tool Swap Plugin")
+        .register();
+
+    /** 生物捕捉插件：用存储里的空树脂块自动捕捉附近生物。 */
+    public static final ItemEntry<TerminalPluginItem> MOB_CATCHER_PLUGIN = REGISTRUM
+        .item("mob_catcher_plugin", properties -> new TerminalPluginItem(PluginKind.MOB_CATCHER, properties))
+        .properties(properties -> properties.component(
+            AddonDataComponents.MOB_CATCHER_SETTINGS,
+            MobCatcherSettings.DEFAULT
+        ))
+        .lang("Terminal Mob Catcher Plugin")
+        .register();
+
+    /** 经验泵插件：玩家经验与存储里的经验宝石互转。 */
+    public static final ItemEntry<TerminalPluginItem> XP_PUMP_PLUGIN = REGISTRUM
+        .item("xp_pump_plugin", properties -> new TerminalPluginItem(PluginKind.XP_PUMP, properties))
+        .properties(properties -> properties.component(
+            AddonDataComponents.XP_PUMP_SETTINGS,
+            XpPumpSettings.DEFAULT
+        ))
+        .lang("Terminal XP Pump Plugin")
         .register();
 
     public static void register() {

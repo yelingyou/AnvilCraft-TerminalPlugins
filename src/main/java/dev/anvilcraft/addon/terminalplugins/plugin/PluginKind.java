@@ -36,6 +36,10 @@ public enum PluginKind {
     FLUID("fluid_plugin"),
     /** 工具切换：手持工具快坏掉时，自动从存储换一把更好的同种工具。 */
     TOOL_SWAP("tool_swap_plugin"),
+    /** 生物捕捉：把存储里的空树脂块变成装着生物的树脂块。 */
+    MOB_CATCHER("mob_catcher_plugin"),
+    /** 经验泵：玩家经验与存储里的经验宝石互转。 */
+    XP_PUMP("xp_pump_plugin"),
     ;
 
     private final String id;

@@ -15,7 +15,9 @@ import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
+import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
+import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -94,6 +96,8 @@ public class TerminalPluginItem extends Item {
             case ANVIL_REPAIR -> TerminalPluginItem.cycleAnvilRepair(stack, secondary);
             case FLUID -> TerminalPluginItem.cycleFluid(stack, secondary);
             case TOOL_SWAP -> TerminalPluginItem.cycleToolSwap(stack, secondary);
+            case MOB_CATCHER -> TerminalPluginItem.cycleMobCatcher(stack, secondary);
+            case XP_PUMP -> TerminalPluginItem.cycleXpPump(stack, secondary);
         };
     }
 
@@ -235,6 +239,43 @@ public class TerminalPluginItem extends Item {
         stack.set(AddonDataComponents.TOOL_SWAP_SETTINGS, next);
         return Component.translatable(
             "screen.anvilcraft_terminal_plugins.setting.tool_swap_threshold", next.thresholdPercent());
+    }
+
+    // 生物捕捉：主档位切半径，副档位切是否连敌对生物一起抓
+    private static Component cycleMobCatcher(ItemStack stack, boolean secondary) {
+        MobCatcherSettings settings = stack.getOrDefault(
+            AddonDataComponents.MOB_CATCHER_SETTINGS, MobCatcherSettings.DEFAULT);
+        if (secondary) {
+            MobCatcherSettings next = settings.withAllowHostile(!settings.allowHostile());
+            stack.set(AddonDataComponents.MOB_CATCHER_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.mob_catcher_hostile",
+                Component.translatable(next.allowHostile()
+                    ? "screen.anvilcraft_terminal_plugins.setting.on"
+                    : "screen.anvilcraft_terminal_plugins.setting.off"));
+        }
+        MobCatcherSettings next = settings.nextRadius();
+        stack.set(AddonDataComponents.MOB_CATCHER_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.range", next.radius());
+    }
+
+    // 经验泵：主档位切模式，副档位切每周期宝石数
+    private static Component cycleXpPump(ItemStack stack, boolean secondary) {
+        XpPumpSettings settings = stack.getOrDefault(
+            AddonDataComponents.XP_PUMP_SETTINGS, XpPumpSettings.DEFAULT);
+        if (secondary) {
+            XpPumpSettings next = settings.withGemsPerCycle(XpPumpSettings.nextBatch(settings.gemsPerCycle()));
+            stack.set(AddonDataComponents.XP_PUMP_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.xp_gems_per_cycle", next.gemsPerCycle());
+        }
+        XpPumpSettings next = settings.nextMode();
+        stack.set(AddonDataComponents.XP_PUMP_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.xp_mode",
+            Component.translatable("screen.anvilcraft_terminal_plugins.xp_mode."
+                + next.mode().getSerializedName()));
     }
 
     // 销毁：切换保留组数

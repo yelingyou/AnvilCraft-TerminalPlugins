@@ -2,6 +2,59 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
+## 〇、P3（版本 1.5.0）：生物捕捉插件 + 经验泵插件
+
+计划里 P3 的三项是「生物捕捉 / 经验泵 / 合成扩展」。前两项本轮落地，第三项排到下一轮（原因见末尾）。
+
+### 1. 生物捕捉插件
+
+**关键取舍：规则不在我们这边实现，而是直接调用本体的公开 API。**
+本体的树脂块（`anvilcraft:resin_block`）已经支持手动捕捉：手持右键生物，敌对 / 中立需要先施加虚弱，体积过大抓不了。
+`HasMobBlockItem` 把这两件事都公开了：
+
+| 本体 API | 用途 |
+|---|---|
+| `canMobBeSaved(Mob, Player, ItemStack)` | 判定某个生物能不能被这个树脂块抓（体积、虚弱、创造模式等规则全在里面） |
+| `saveMobInItem(Level, Mob, Player, ItemStack)` | 实际捕捉：`SavedEntity.fromMob` → `stack.split(1)` → 设置 `SAVED_ENTITY` 组件 → 移除生物 |
+
+因此插件只做「自动化」：从存储取一个**未装生物**的树脂块 → 找半径内最近的候选生物 → 逐个调用上面两个方法 → 把装着生物的树脂块放回存储。
+插件的设置（半径 4/8/12/16、是否连敌对 / 中立一起抓）只影响**候选范围**，不影响能否成功。
+
+**两个容易踩的坑（都已核对字节码确认）**：
+
+1. `saveMobInItem` 在 `player != null` 时会调用 `player.getInventory().placeItemBackInInventory(...)`，把抓到的树脂块直接塞进**玩家背包**；
+   我们要的是收进**存储**，所以传 `player = null`——此时它只返回结果给我们，不做任何背包写入（服务端分支不受影响）。
+2. `saveMobInItem` 自己会 `mob.remove(Entity.RemovalReason.DISCARDED)`，插件**不能**再删一次，否则会有重复生物的隐患（重复删除虽然无害，但语义上必须清楚归属）。
+
+失败路径：没有空树脂块 → 直接返回；所有候选都抓不了 → 把树脂块原样插回存储，不消耗物品。
+
+### 2. 经验泵插件
+
+**为什么用经验宝石而不是经验流体**：终端存储是「按类型计数」的物品模型，没有流体槽位。
+本体文档写明 `1000mB 经验流体 = 1 经验宝石 = 50 玩家经验值`，所以经验宝石正好能装进现有存储，不需要引入第二套存储模型。
+
+| 模式 | 行为 |
+|---|---|
+| 存入 | 等级 ≥ 阈值（默认 30）且 `totalExperience ≥ 50` 时：`giveExperiencePoints(-50)` → 一颗经验宝石进存储，每周期最多 1/2/4/8 颗 |
+| 取出 | 等级 ≤ 阈值（默认 5）时：从存储取经验宝石 → `giveExperiencePoints(+50 × 数量)` |
+
+**防丢经验**：写入走 `PluginContext#insertIntoStorage`，它会先过终端上已安装的**过滤插件**；
+如果宝石被过滤掉（返回 0），插件会立刻把扣掉的 50 点经验退回，避免「经验没了、宝石也没进存储」。
+
+### 3. 验证
+
+| 项 | 结果 |
+|---|---|
+| `compileJava` | BUILD SUCCESSFUL（新增 4 个类：`MobCatcherSettings` / `XpPumpSettings` / `MobCatcherPlugin` / `XpPumpPlugin`） |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.5.0.jar`，语言键与物品模型都已生成 |
+| `runServer` | `Done (9.490s)! For help, type "help"`，无报错 |
+| 贴图 / 配方 | `textures/item/mob_catcher_plugin.png`（琥珀块 + 生物剪影）、`textures/item/xp_pump_plugin.png`（经验宝石 + 双向箭头）；配方分别用 `anvilcraft:resin_block` 与 `anvilcraft:exp_gem` |
+
+### 4. 「合成扩展」为什么留到下一轮
+
+核对本体文档后确认：存储界面的**合成窗口只支持工作台与切石机**（`ageratum/004_block/003_crate.md#合成窗口`），
+所以「锻造台」确实是空白，值得做；但它需要走 `RecipeType.SMITHING` + `SmithingRecipeInput`（模板 / 基底 / 附加三件套），
+消耗与回滚路径比这两个插件复杂，**单独一轮实现 + 单独验证**更稳。
 ## 〇、P2（版本 1.4.0）：流体接口插件 + 移除与本体重复的「一键存入」
 
 ### 1. 移除「一键存入插件」

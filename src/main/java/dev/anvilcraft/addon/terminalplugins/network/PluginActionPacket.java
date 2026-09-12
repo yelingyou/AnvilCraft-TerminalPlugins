@@ -14,6 +14,7 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
+import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
@@ -72,6 +73,12 @@ public record PluginActionPacket(
     public static final int ADJUST_FLUID_CAPACITY = 16;
     /** 工具切换插件：旧工具是否放回存储。 */
     public static final int TOGGLE_TOOL_SWAP_RETURN = 17;
+    /** 经验泵：存入阈值等级。 */
+    public static final int ADJUST_XP_STORE_LEVEL = 18;
+    /** 经验泵：取出保留等级。 */
+    public static final int ADJUST_XP_KEEP_LEVEL = 19;
+    /** 经验泵：每周期宝石数。 */
+    public static final int ADJUST_XP_BATCH = 20;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -286,6 +293,33 @@ public record PluginActionPacket(
                 plugin.set(
                     AddonDataComponents.TOOL_SWAP_SETTINGS,
                     toolSwapSettings.withReturnWorn(!toolSwapSettings.returnWorn())
+                );
+                return plugin;
+            });
+            case ADJUST_XP_STORE_LEVEL -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                XpPumpSettings xpSettings = plugin.getOrDefault(
+                    AddonDataComponents.XP_PUMP_SETTINGS, XpPumpSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.XP_PUMP_SETTINGS,
+                    xpSettings.withStoreLevel(xpSettings.storeLevel() + Math.round(packet.value()))
+                );
+                return plugin;
+            });
+            case ADJUST_XP_KEEP_LEVEL -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                XpPumpSettings xpSettings = plugin.getOrDefault(
+                    AddonDataComponents.XP_PUMP_SETTINGS, XpPumpSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.XP_PUMP_SETTINGS,
+                    xpSettings.withKeepLevel(xpSettings.keepLevel() + Math.round(packet.value()))
+                );
+                return plugin;
+            });
+            case ADJUST_XP_BATCH -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                XpPumpSettings xpSettings = plugin.getOrDefault(
+                    AddonDataComponents.XP_PUMP_SETTINGS, XpPumpSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.XP_PUMP_SETTINGS,
+                    xpSettings.withGemsPerCycle(xpSettings.gemsPerCycle() + Math.round(packet.value()))
                 );
                 return plugin;
             });
