@@ -47,24 +47,23 @@ public class AddonLangHandler {
             "plugin.anvilcraft_terminal_plugins.feeding_plugin.desc",
             "Feeds the owner from the bound storage when hungry"
         );
-        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.deposit_plugin", "Deposit Plugin");
-        AddonLangHandler.extra(
-            "plugin.anvilcraft_terminal_plugins.deposit_plugin.desc",
-            "Stores matching items from your inventory at the press of a button"
-        );
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.void_plugin", "Void Plugin");
         AddonLangHandler.extra(
             "plugin.anvilcraft_terminal_plugins.void_plugin.desc",
             "Destroys matching items in the storage beyond the kept amount"
         );
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.skip_hotbar", "Skip hotbar %s");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.skip_armor", "Skip armor %s");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.deposit_now", "Deposit now");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.keep_stacks", "Keep %s stacks");
+        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.fluid_plugin", "Fluid Plugin");
         AddonLangHandler.extra(
-            "screen.anvilcraft_terminal_plugins.panel.deposit_tip",
-            "Click to move matching items into the storage"
+            "plugin.anvilcraft_terminal_plugins.fluid_plugin.desc",
+            "Moves fluids between containers in the storage and the terminal's built-in buffer"
         );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_mode", "Mode: %s");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_batch", "Batch per cycle: %s");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.fluid_capacity", "Buffer: %s buckets");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.off", "Off");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.fill_buffer", "Fill buffer");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.fluid_mode.empty_buffer", "Fill containers");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.keep_stacks", "Keep %s stacks");
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.compacting_plugin", "Compacting Plugin");
         AddonLangHandler.extra(
             "plugin.anvilcraft_terminal_plugins.compacting_plugin.desc",

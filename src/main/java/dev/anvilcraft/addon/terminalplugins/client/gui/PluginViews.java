@@ -4,9 +4,9 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
@@ -32,10 +32,10 @@ public final class PluginViews {
             case AUTO_COOKING -> new CookingView();
             case FEEDING -> new FeedingView();
             case ALCHEMY -> new AlchemyView();
-            case DEPOSIT -> new DepositView();
             case VOID -> new VoidView();
             case COMPACTING -> new CompactingView();
             case ANVIL_REPAIR -> new AnvilRepairView();
+            case FLUID -> new FluidView();
         };
     }
 
@@ -245,35 +245,6 @@ public final class PluginViews {
         }
     }
 
-    // 一键存入：过滤表 + 两个跳过开关 + 立即存入按钮
-    private static final class DepositView implements PluginSettingsView {
-        @Override
-        public int height(ItemStack plugin) {
-            return 3 * 18 + 18 + 16;
-        }
-
-        @Override
-        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
-                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
-            DepositSettings settings = plugin.getOrDefault(
-                AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT);
-            ctx.settingButton(graphics, minecraft, x, y, width / 2 - 1, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.skip_hotbar",
-                settings.skipHotbar() ? PluginViews.on() : PluginViews.off()),
-                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
-            ctx.settingButton(graphics, minecraft, x + width / 2 + 1, y, width / 2 - 1, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.skip_armor",
-                settings.skipArmor() ? PluginViews.on() : PluginViews.off()),
-                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
-            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 16, mouseX, mouseY);
-            ctx.settingButton(graphics, minecraft, x, y + 16 + 54 + 2, width, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.deposit_now"),
-                pluginIndex, -1, PluginActionPacket.DEPOSIT_NOW, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.deposit_tip");
-        }
-    }
 
     // 销毁：过滤表 + 保留组数
     private static final class VoidView implements PluginSettingsView {
@@ -335,6 +306,52 @@ public final class PluginViews {
                 pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
                 "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
             PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
+        }
+    }
+
+    // 流体接口：工作模式 / 每周期批数 / 缓冲容量 + 过滤表（筛可用的容器）
+    private static final class FluidView implements PluginSettingsView {
+        @Override
+        public int height(ItemStack plugin) {
+            return 3 * 18 + 6 + 54;
+        }
+
+        @Override
+        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
+                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
+            FluidSettings settings = plugin.getOrDefault(
+                AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT);
+            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.fluid_mode",
+                PluginViews.tr("screen.anvilcraft_terminal_plugins.fluid_mode."
+                    + settings.mode().getSerializedName())),
+                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            int rowY = y + 18;
+            ctx.smallButton(graphics, minecraft, x, rowY, 12, "-", pluginIndex, -1,
+                PluginActionPacket.ADJUST_FLUID_BATCH, mouseX, mouseY);
+            ctx.pendingValue(-1.0F);
+            ctx.settingButton(graphics, minecraft, x + 14, rowY, width - 28, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.fluid_batch", settings.batch()),
+                pluginIndex, -1, PluginActionPacket.ADJUST_FLUID_BATCH, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.pendingValue(1.0F);
+            ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
+                PluginActionPacket.ADJUST_FLUID_BATCH, mouseX, mouseY);
+            ctx.pendingValue(1.0F);
+            rowY += 18;
+            ctx.smallButton(graphics, minecraft, x, rowY, 12, "-", pluginIndex, -1,
+                PluginActionPacket.ADJUST_FLUID_CAPACITY, mouseX, mouseY);
+            ctx.pendingValue(-1.0F);
+            ctx.settingButton(graphics, minecraft, x + 14, rowY, width - 28, PluginViews.tr(
+                "screen.anvilcraft_terminal_plugins.setting.fluid_capacity", settings.capacityBuckets()),
+                pluginIndex, -1, PluginActionPacket.ADJUST_FLUID_CAPACITY, mouseX, mouseY,
+                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
+            ctx.pendingValue(1.0F);
+            ctx.smallButton(graphics, minecraft, x + width - 12, rowY, 12, "+", pluginIndex, -1,
+                PluginActionPacket.ADJUST_FLUID_CAPACITY, mouseX, mouseY);
+            ctx.pendingValue(1.0F);
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
         }
     }
 

@@ -12,9 +12,9 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -68,15 +68,6 @@ public class AddonItems {
         .lang("Terminal Alchemy Plugin")
         .register();
 
-    /** 一键存入插件：把背包里匹配过滤的物品一次存进存储。 */
-    public static final ItemEntry<TerminalPluginItem> DEPOSIT_PLUGIN = REGISTRUM
-        .item("deposit_plugin", properties -> new TerminalPluginItem(PluginKind.DEPOSIT, properties))
-        .properties(properties -> properties
-            .component(ModComponents.FILTER_CONTENT, new FilterContent())
-            .component(AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT))
-        .lang("Terminal Deposit Plugin")
-        .register();
-
     /** 销毁插件：匹配过滤的物品只保留指定组数。 */
     public static final ItemEntry<TerminalPluginItem> VOID_PLUGIN = REGISTRUM
         .item("void_plugin", properties -> new TerminalPluginItem(PluginKind.VOID, properties))
@@ -102,6 +93,15 @@ public class AddonItems {
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
             .component(AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT))
         .lang("Terminal Anvil Repair Plugin")
+        .register();
+
+    /** 流体接口插件：终端自带储液缓冲，与存储里的桶 / 瓶互换流体。 */
+    public static final ItemEntry<TerminalPluginItem> FLUID_PLUGIN = REGISTRUM
+        .item("fluid_plugin", properties -> new TerminalPluginItem(PluginKind.FLUID, properties))
+        .properties(properties -> properties
+            .component(ModComponents.FILTER_CONTENT, new FilterContent())
+            .component(AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT))
+        .lang("Terminal Fluid Plugin")
         .register();
 
     public static void register() {

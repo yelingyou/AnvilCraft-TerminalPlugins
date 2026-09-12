@@ -12,6 +12,7 @@ import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
@@ -64,8 +65,10 @@ public record PluginActionPacket(
     public static final int SET_FILTER_SLOT = 11;
     public static final int ADJUST_MAGNET_RANGE = 12;
     public static final int ADJUST_FEEDING_THRESHOLD = 13;
-    /** 即时动作：一键存入（由插件自己实现 onAction）。 */
-    public static final int DEPOSIT_NOW = 14;
+    /** 流体插件：每周期处理批数。 */
+    public static final int ADJUST_FLUID_BATCH = 15;
+    /** 流体插件：缓冲容量（桶）。 */
+    public static final int ADJUST_FLUID_CAPACITY = 16;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -254,17 +257,26 @@ public record PluginActionPacket(
                 ));
                 return plugin;
             });
-            case DEPOSIT_NOW -> {
-                ItemStack pluginStack = TerminalPluginManager.installed(terminal).get(packet.pluginIndex());
-                TerminalPlugin plugin = TerminalPluginRegistry.behaviorOf(pluginStack).orElse(null);
-                if (plugin != null) {
-                    TerminalStorage storage = TerminalStorageResolver.resolve(player, terminal);
-                    plugin.onAction(
-                        new PluginContext(player, terminal, pluginStack, storage, player.tickCount),
-                        packet.action()
-                    );
-                }
-            }
+            case ADJUST_FLUID_BATCH -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                FluidSettings fluidSettings = plugin.getOrDefault(
+                    AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT);
+                plugin.set(AddonDataComponents.FLUID_SETTINGS, new FluidSettings(
+                    fluidSettings.mode(),
+                    Math.clamp(fluidSettings.batch() + Math.round(packet.value()), 1, 16),
+                    fluidSettings.capacityBuckets()
+                ));
+                return plugin;
+            });
+            case ADJUST_FLUID_CAPACITY -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                FluidSettings fluidSettings = plugin.getOrDefault(
+                    AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT);
+                plugin.set(AddonDataComponents.FLUID_SETTINGS, new FluidSettings(
+                    fluidSettings.mode(),
+                    fluidSettings.batch(),
+                    Math.clamp(fluidSettings.capacityBuckets() + Math.round(packet.value()), 1, 64)
+                ));
+                return plugin;
+            });
             default -> {
             }
         }

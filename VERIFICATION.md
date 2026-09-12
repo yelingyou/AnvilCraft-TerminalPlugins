@@ -2,13 +2,55 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
+## 〇、P2（版本 1.4.0）：流体接口插件 + 移除与本体重复的「一键存入」
+
+### 1. 移除「一键存入插件」
+
+核对本体实现后确认该功能**本体已经有了**，本附属不再重复实现（相关代码、组件、贴图、配方、语言键、网络动作全部删除）：
+
+| 本体已有的能力 | 证据 |
+|---|---|
+| 智能补货：按住 Alt 切换「智能（双向）/ 仅补货 / 仅存入 / 关」；**存入** = 捡起物品超过一组时只保留一组，多余自动存入存储站 | 本体游戏内手册 `ageratum`：`004_block/215_large_crate.md` §终端的「智能补货」 |
+| 存储界面的「存入 / 取出」按钮（整包搬运，支持撤销） | `StorageServerStub.deposit(UUID, long, boolean all)` / `undo(UUID, long)` / `take(UUID, long)`，以及 `storage_station/put.png`、`take.png` |
+| 终端悬浮窗「手持物品右击塞入」 | 同上手册 §终端的「悬浮窗」 |
+
+因此 `DepositPlugin`、`DepositSettings`、`DEPOSIT_NOW`、面板「立即存入」按钮、`deposit_plugin` 物品/贴图/配方一并移除；插件总数 9 → 8。
+（旧版本仍可从 git 历史 `e4b5382` 取回。）
+
+### 2. 新增「流体接口插件」（贴合终端设计的实现方式）
+
+终端的存储是**按类型计数**的物品模型，没有流体槽位，所以没有照搬「流体罐 + 泵」那种双绑定设计，而是：
+
+- **插件物品自带储液缓冲**（数据组件 `FLUID_BUFFER`，容量 1~64 桶，默认 8 桶）——流体跟着插件走，拆下插件就把缓冲里的流体一起带走，符合「插件 = 可拆卸模块」的设定；
+- 流体进出存储**始终以容器物品的形式**发生，存储里只多出/少掉桶、瓶这类普通物品，不引入任何存储模型改动；
+- 复用本体 `api/fluid/FluidHandlerWrapper`（它已处理桶、玻璃瓶、水瓶、蜜瓶、不祥之瓶等特例）：
+  - **抽进缓冲**：从存储取一个能倒出流体的容器 → `fillFromItem` → 空容器放回存储；
+  - **灌进容器**：从存储取一个空容器 → `drainToItem` → 装满的容器放回存储；
+  - 候选筛选走 `simulate` 版本（`fillFromItem(stack, true)` / `drainToItem(stack, true)`，已反编译确认第二/第三个 boolean 就是 `FluidAction.SIMULATE`），失败时把取出的原容器原样放回，不会出现「容器没了、流体没动」的丢物品；
+- 过滤表（复刻本体的 `ModComponents.FILTER_CONTENT`）决定允许哪些容器参与；每周期处理 1/2/4/8/16 个；工作模式 关闭 / 抽进缓冲 / 灌进容器。
+
+### 3. 验证
+
+| 项 | 结果 |
+|---|---|
+| `compileJava` | BUILD SUCCESSFUL |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.4.0.jar`；生成的 `en_us` / `en_ud` 中已无 `deposit` 键、已含 `fluid` 键 |
+| `runServer` | `Done (10.055s)! For help, type "help"`，无报错；插件类正常加载 |
+| 贴图 / 配方 | `textures/item/fluid_plugin.png`（16×16 储罐+液面+阀门）、`recipe/fluid_plugin.json`（铁锭+玻璃+桶 3×3） |
+
+### 4. 关于「补货增强」
+
+原计划里的「补货增强（Advanced Refill）」对应本体已有的 `BalanceMode.RESTOCK`（智能补货的「补货」档：手持物品用完时自动补满一组），
+与原计划表里标注的「需先确认增量价值，否则不做」一致，本轮**不做**；若要做，会改成本体没有的语义（例如工具耗尽/损坏时整列补货、按耐久阈值补货）。
 ## 〇、P1：四个新插件（版本 1.3.0）
 
 按计划新增（全部含设置子页、手持右键档位、配方、贴图、中英语言键）：
 
+> 注：原计划里的「一键存入」已**移除** —— 铁砧工艺本体自带「智能补货（Alt 切换：智能 / 仅补货 / 仅存入 / 关）」与存储界面的「存入 / 取出」按钮，
+> 本体的 `StorageServerStub.deposit(playerId, sessionId, all)` 就是「把背包里的物品一次存进存储」，再做一个插件属于重复实现。
+
 | 插件 | 语义 | 实现要点 |
 |---|---|---|
-| **一键存入** | 把玩家背包里匹配过滤的物品一次存进存储 | 新增 `TerminalPlugin#onAction` 扩展点，面板按钮发 `DEPOSIT_NOW` 动作；可跳过快捷栏/盔甲 |
 | **销毁** | 存储里匹配过滤的物品只保留指定组数 | 直接操作 `UnlimitedItemStack` 的数量；保留组数 0/1/2/4/8/16/64 |
 | **压缩** | 9 个同类物品自动压成 1 个 | 用 `RecipeType.CRAFTING` + `CraftingInput.of(3,3,9 个相同物品)` 查询原版配方；只处理过滤表内物品；取不足 9 个时原样归还 |
 | **铁砧修复** | 用匹配过滤的材料修复受损装备 | 取出受损装备 1 件 + 材料 1 个 → `setDamageValue` → 放回；无材料时把装备放回 |

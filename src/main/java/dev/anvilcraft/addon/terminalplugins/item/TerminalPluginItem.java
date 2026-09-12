@@ -12,9 +12,9 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -88,10 +88,10 @@ public class TerminalPluginItem extends Item {
             case FEEDING -> TerminalPluginItem.cycleFeeding(stack, secondary);
             case ALCHEMY -> TerminalPluginItem.cycleAlchemy(stack, secondary);
             case FILTER -> TerminalPluginItem.cycleFilter(stack, secondary);
-            case DEPOSIT -> TerminalPluginItem.cycleDeposit(stack, secondary);
             case VOID -> TerminalPluginItem.cycleVoid(stack, secondary);
             case COMPACTING -> TerminalPluginItem.cycleCompacting(stack, secondary);
             case ANVIL_REPAIR -> TerminalPluginItem.cycleAnvilRepair(stack, secondary);
+            case FLUID -> TerminalPluginItem.cycleFluid(stack, secondary);
         };
     }
 
@@ -199,20 +199,22 @@ public class TerminalPluginItem extends Item {
 
     private static final int[] VOID_KEEP_STACKS = {0, 1, 2, 4, 8, 16, 64};
 
-    // 一键存入：主档位切是否跳过快捷栏，副档位切是否跳过盔甲
-    private static Component cycleDeposit(ItemStack stack, boolean secondary) {
-        DepositSettings settings = stack.getOrDefault(
-            AddonDataComponents.DEPOSIT_SETTINGS, DepositSettings.DEFAULT);
-        DepositSettings next = secondary
-            ? settings.withSkipArmor(!settings.skipArmor())
-            : settings.withSkipHotbar(!settings.skipHotbar());
-        stack.set(AddonDataComponents.DEPOSIT_SETTINGS, next);
-        return Component.translatable(secondary
-            ? "screen.anvilcraft_terminal_plugins.setting.skip_armor"
-            : "screen.anvilcraft_terminal_plugins.setting.skip_hotbar",
-            Component.translatable((secondary ? next.skipArmor() : next.skipHotbar())
-                ? "screen.anvilcraft_terminal_plugins.setting.on"
-                : "screen.anvilcraft_terminal_plugins.setting.off"));
+    // 流体接口：主档位切工作模式，副档位切每周期批数
+    private static Component cycleFluid(ItemStack stack, boolean secondary) {
+        FluidSettings settings = stack.getOrDefault(
+            AddonDataComponents.FLUID_SETTINGS, FluidSettings.DEFAULT);
+        if (secondary) {
+            FluidSettings next = settings.withBatch(FluidSettings.nextBatch(settings.batch()));
+            stack.set(AddonDataComponents.FLUID_SETTINGS, next);
+            return Component.translatable(
+                "screen.anvilcraft_terminal_plugins.setting.fluid_batch", next.batch());
+        }
+        FluidSettings next = settings.nextMode();
+        stack.set(AddonDataComponents.FLUID_SETTINGS, next);
+        return Component.translatable(
+            "screen.anvilcraft_terminal_plugins.setting.fluid_mode",
+            Component.translatable("screen.anvilcraft_terminal_plugins.fluid_mode."
+                + next.mode().getSerializedName()));
     }
 
     // 销毁：切换保留组数

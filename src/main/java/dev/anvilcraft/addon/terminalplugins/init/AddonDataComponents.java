@@ -13,7 +13,7 @@ import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.DepositSettings;
+import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.InstalledPlugins;
@@ -59,12 +59,6 @@ public class AddonDataComponents {
         b -> b.persistent(FeedingSettings.CODEC).networkSynchronized(FeedingSettings.STREAM_CODEC)
     );
 
-    /** 一键存入插件。 */
-    public static final DataComponentType<DepositSettings> DEPOSIT_SETTINGS = AddonDataComponents.register(
-        "deposit_settings",
-        b -> b.persistent(DepositSettings.CODEC).networkSynchronized(DepositSettings.STREAM_CODEC)
-    );
-
     /** 销毁插件。 */
     public static final DataComponentType<VoidSettings> VOID_SETTINGS = AddonDataComponents.register(
         "void_settings",
@@ -82,6 +76,20 @@ public class AddonDataComponents {
         "anvil_repair_settings",
         b -> b.persistent(AnvilRepairSettings.CODEC).networkSynchronized(AnvilRepairSettings.STREAM_CODEC)
     );
+
+    /** 流体接口插件配置。 */
+    public static final DataComponentType<FluidSettings> FLUID_SETTINGS = AddonDataComponents.register(
+        "fluid_settings",
+        b -> b.persistent(FluidSettings.CODEC).networkSynchronized(FluidSettings.STREAM_CODEC)
+    );
+
+    /** 流体接口插件的储液缓冲（流体跟随插件物品，拆下即带走）。 */
+    public static final DataComponentType<net.neoforged.neoforge.fluids.FluidStack> FLUID_BUFFER =
+        AddonDataComponents.register(
+            "fluid_buffer",
+            b -> b.persistent(net.neoforged.neoforge.fluids.FluidStack.CODEC)
+                .networkSynchronized(net.neoforged.neoforge.fluids.FluidStack.STREAM_CODEC)
+        );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */
     public static final DataComponentType<AlchemySettings> ALCHEMY_SETTINGS = AddonDataComponents.register(

@@ -12,9 +12,9 @@ import dev.anvilcraft.addon.terminalplugins.plugin.impl.AlchemyPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.AnvilRepairPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.AutoCookingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.CompactingPlugin;
-import dev.anvilcraft.addon.terminalplugins.plugin.impl.DepositPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FeedingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FilterPlugin;
+import dev.anvilcraft.addon.terminalplugins.plugin.impl.FluidPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.MagnetPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.VoidPlugin;
 
@@ -31,9 +31,9 @@ public final class TerminalPlugins {
         TerminalPluginRegistry.register(new AutoCookingPlugin());
         TerminalPluginRegistry.register(new FeedingPlugin());
         TerminalPluginRegistry.register(new AlchemyPlugin());
-        TerminalPluginRegistry.register(new DepositPlugin());
         TerminalPluginRegistry.register(new VoidPlugin());
         TerminalPluginRegistry.register(new CompactingPlugin());
         TerminalPluginRegistry.register(new AnvilRepairPlugin());
+        TerminalPluginRegistry.register(new FluidPlugin());
     }
 }
