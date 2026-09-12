@@ -29,8 +29,8 @@
 | 项 | 结果 |
 |---|---|
 | `compileJava` | BUILD SUCCESSFUL |
-| `runData build` | 见下方记录 |
-| `runServer` | 见下方记录 |
+| `runData build` | BUILD SUCCESSFUL，产物 `anvilcraft_terminal_plugins-neoforge-1.21.1-1.7.1.jar` |
+| `runServer` | `Done (23.352s)! For help, type "help"`，无报错 |
 ## 〇、第三轮需求（版本 1.7.0）：执行子页 + 输入输出槽
 
 ### 1. 「执行」从设置里独立出来
