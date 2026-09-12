@@ -1,6 +1,7 @@
 package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -50,12 +51,18 @@ public class CompactingPlugin implements TerminalPlugin {
         ServerLevel level = player.serverLevel();
         RecipeManager manager = level.getRecipeManager();
 
+        PluginSample sample = context.pluginStack().getOrDefault(
+            AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
         int done = 0;
         for (ItemStack candidate : context.storage().types()) {
             if (done >= settings.batch()) {
                 break;
             }
             if (!filter.filter(candidate)) {
+                continue;
+            }
+            // 输入槽指定了就只压这一种
+            if (sample.hasSample() && !ItemStack.isSameItemSameComponents(candidate, sample.sample())) {
                 continue;
             }
             Predicate<ItemStack> sameType = stack -> ItemStack.isSameItemSameComponents(stack, candidate);
@@ -83,6 +90,7 @@ public class CompactingPlugin implements TerminalPlugin {
                 continue;
             }
             context.insertIntoStorage(result);
+            context.pluginStack().set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
             done++;
         }
     }

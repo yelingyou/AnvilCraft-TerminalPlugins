@@ -1,5 +1,6 @@
 package dev.anvilcraft.addon.terminalplugins.client;
 
+import dev.anvilcraft.addon.terminalplugins.client.gui.PluginExecViews;
 import dev.anvilcraft.addon.terminalplugins.client.gui.PluginSettingsView;
 import dev.anvilcraft.addon.terminalplugins.client.gui.PluginViews;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
@@ -36,6 +37,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private static final int LOCAL_SELECT = -2;
     private static final int LOCAL_SETTINGS = -3;
     private static final int LOCAL_BACK = -4;
+    private static final int LOCAL_EXECUTE = -5;
 
     private static final int COLOR_PANEL = 0xF0181820;
     private static final int COLOR_BORDER = 0xFF6E6E78;
@@ -63,6 +65,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
 
     private boolean open = false;
     private boolean settingsOpen = false;
+    private boolean executeOpen = false;
     private int selected = 0;
     private Target target;
 
@@ -83,12 +86,14 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     public void close() {
         this.open = false;
         this.settingsOpen = false;
+        this.executeOpen = false;
     }
 
     public void open(Target newTarget) {
         this.target = newTarget;
         this.open = newTarget != null;
         this.settingsOpen = false;
+        this.executeOpen = false;
         this.selected = 0;
     }
 
@@ -162,6 +167,14 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     // 面板高度按内容自适应（对齐精妙背包按子控件外接矩形推算尺寸的思路）
     private int panelHeight(ItemStack terminal) {
         List<ItemStack> plugins = TerminalPluginManager.installed(terminal);
+        if (this.executeOpen && !plugins.isEmpty()) {
+            ItemStack plugin = plugins.get(Math.clamp(this.selected, 0, plugins.size() - 1));
+            PluginSettingsView view = plugin.getItem() instanceof TerminalPluginItem terminalPlugin
+                ? PluginExecViews.of(terminalPlugin.kind())
+                : null;
+            int execContent = view == null ? 14 : view.height(plugin);
+            return 18 + execContent + 4 + 12;
+        }
         if (!this.settingsOpen || plugins.isEmpty()) {
             int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
             return 18 + Math.max(rows, 1) * 14 + 4 + 15 + 12;
@@ -260,14 +273,22 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             case LOCAL_SELECT -> {
                 this.selected = region.pluginIndex();
                 this.settingsOpen = false;
+                this.executeOpen = false;
                 return;
             }
             case LOCAL_SETTINGS -> {
                 this.settingsOpen = true;
+                this.executeOpen = false;
+                return;
+            }
+            case LOCAL_EXECUTE -> {
+                this.executeOpen = true;
+                this.settingsOpen = false;
                 return;
             }
             case LOCAL_BACK -> {
                 this.settingsOpen = false;
+                this.executeOpen = false;
                 return;
             }
             default -> {
@@ -431,8 +452,8 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
         this.selected = Math.clamp(this.selected, 0, plugins.size() - 1);
         ItemStack selectedPlugin = plugins.get(this.selected);
 
-        if (this.settingsOpen) {
-            // 设置子页：标题栏（返回 + 插件名）+ 插件自己的控件
+        if (this.settingsOpen || this.executeOpen) {
+            // 子页：标题栏（返回 + 插件名 + 页名）+ 插件自己的控件；设置与执行分两页
             this.addRegion(new Region(x + 2, y + 2, 12, 12, TerminalPluginPanel.LOCAL_BACK, -1, -1), 0.0F,
                 "screen.anvilcraft_terminal_plugins.panel.back_tip");
             graphics.drawString(minecraft.font, "<", x + 5, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
@@ -441,11 +462,22 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 : selectedPlugin.getHoverName().getString();
             graphics.renderItem(selectedPlugin, x + 16, y + 1);
             graphics.drawString(minecraft.font, name, x + 34, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
+            if (this.executeOpen) {
+                String pageName = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.panel.execute");
+                graphics.drawString(minecraft.font, pageName,
+                    x + TerminalPluginPanel.PANEL_WIDTH - 12 - minecraft.font.width(pageName), y + 5,
+                    TerminalPluginPanel.COLOR_DIM, false);
+            }
             if (selectedPlugin.getItem() instanceof TerminalPluginItem item) {
-                PluginViews.of(item.kind()).render(
-                    this, graphics, minecraft, selectedPlugin, this.selected,
-                    x + 4, y + 18, TerminalPluginPanel.PANEL_WIDTH - 8, mouseX, mouseY
-                );
+                PluginSettingsView subView = this.executeOpen
+                    ? PluginExecViews.of(item.kind())
+                    : PluginViews.of(item.kind());
+                if (subView != null) {
+                    subView.render(
+                        this, graphics, minecraft, selectedPlugin, this.selected,
+                        x + 4, y + 18, TerminalPluginPanel.PANEL_WIDTH - 8, mouseX, mouseY
+                    );
+                }
             }
             this.renderTips(graphics, minecraft, mouseX, mouseY);
             this.renderFooter(graphics, minecraft, x, y + height);
@@ -502,6 +534,11 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             "screen.anvilcraft_terminal_plugins.panel.remove", PluginActionPacket.REMOVE, this.selected, -1, mouseX, mouseY);
         buttonX = this.button(graphics, minecraft, buttonX, buttonY, 24,
             "screen.anvilcraft_terminal_plugins.panel.settings", TerminalPluginPanel.LOCAL_SETTINGS, this.selected, -1, mouseX, mouseY);
+        if (selectedPlugin.getItem() instanceof TerminalPluginItem selectedItem
+            && PluginExecViews.has(selectedItem.kind())) {
+            this.button(graphics, minecraft, buttonX, buttonY, 24,
+                "screen.anvilcraft_terminal_plugins.panel.execute", TerminalPluginPanel.LOCAL_EXECUTE, this.selected, -1, mouseX, mouseY);
+        }
 
         this.renderTips(graphics, minecraft, mouseX, mouseY);
         this.renderFooter(graphics, minecraft, x, y + height);

@@ -10,6 +10,7 @@ package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 
 import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
@@ -65,6 +66,7 @@ public class ChargingPlugin implements TerminalPlugin {
         ItemStack pluginStack = context.pluginStack();
         ChargingSettings settings = pluginStack.getOrDefault(
             AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT);
+        PluginSample sample = pluginStack.getOrDefault(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
         if (settings.idle()) {
             ChargingPower.release(player);
             return;
@@ -82,7 +84,7 @@ public class ChargingPlugin implements TerminalPlugin {
             ChargingPlugin.chargeItems(player, settings, ticks);
         }
         if (settings.runRecipes() && context.storageReachable()) {
-            ChargingPlugin.runRecipe(context, pluginStack, player, settings, ticks);
+            ChargingPlugin.runRecipe(context, pluginStack, player, settings, sample, ticks);
         }
     }
 
@@ -113,7 +115,7 @@ public class ChargingPlugin implements TerminalPlugin {
 
     /** 推进（或开始）一个充能配方；原料从存储取、产物写回存储。 */
     private static void runRecipe(PluginContext context, ItemStack pluginStack, ServerPlayer player,
-                                  ChargingSettings settings, int ticks) {
+                                  ChargingSettings settings, PluginSample sample, int ticks) {
         ServerLevel level = player.serverLevel();
         List<RecipeHolder<ChargerChargingRecipe>> recipes = level.getRecipeManager()
             .getAllRecipesFor(ModRecipeTypes.CHARGER_CHARGING_TYPE.get());
@@ -126,7 +128,7 @@ public class ChargingPlugin implements TerminalPlugin {
                 if (!holder.id().toString().equals(settings.activeRecipe())) {
                     continue;
                 }
-                ChargingPlugin.advance(context, pluginStack, settings, holder, ticks);
+                ChargingPlugin.advance(context, pluginStack, settings, holder, sample, ticks);
                 return;
             }
             // 配方已经不存在（数据包改动）：清掉进度
@@ -142,6 +144,9 @@ public class ChargingPlugin implements TerminalPlugin {
             if (context.storage().count(recipe.getIngredient()) <= 0) {
                 continue;
             }
+            if (sample.hasSample() && !recipe.getIngredient().test(sample.sample())) {
+                continue;
+            }
             pluginStack.set(
                 AddonDataComponents.CHARGING_SETTINGS,
                 settings.withProgress(holder.id().toString(), ticks)
@@ -151,7 +156,7 @@ public class ChargingPlugin implements TerminalPlugin {
     }
 
     private static void advance(PluginContext context, ItemStack pluginStack, ChargingSettings settings,
-                                RecipeHolder<ChargerChargingRecipe> holder, int ticks) {
+                                RecipeHolder<ChargerChargingRecipe> holder, PluginSample sample, int ticks) {
         ChargerChargingRecipe recipe = holder.value();
         if (settings.powerKw() < Math.abs(recipe.getPower())) {
             // 档位调低了，跑不动这个配方
@@ -179,6 +184,7 @@ public class ChargingPlugin implements TerminalPlugin {
             return;
         }
         context.insertIntoStorage(result);
+        pluginStack.set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
         pluginStack.set(AddonDataComponents.CHARGING_SETTINGS, settings.cleared());
     }
 }

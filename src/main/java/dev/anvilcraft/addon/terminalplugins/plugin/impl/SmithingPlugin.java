@@ -8,6 +8,7 @@
  */
 package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
@@ -70,6 +71,8 @@ public class SmithingPlugin implements TerminalPlugin {
         }
 
         int done = 0;
+        PluginSample sample = context.pluginStack().getOrDefault(
+            AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
         for (ItemStack base : context.storage().types()) {
             if (done >= settings.batch()) {
                 break;
@@ -77,11 +80,15 @@ public class SmithingPlugin implements TerminalPlugin {
             if (!filter.filter(base)) {
                 continue;
             }
+            // 输入槽指定了就只锻造这一种基底
+            if (sample.hasSample() && !ItemStack.isSameItemSameComponents(base, sample.sample())) {
+                continue;
+            }
             for (RecipeHolder<SmithingRecipe> holder : recipes) {
                 if (done >= settings.batch()) {
                     break;
                 }
-                if (SmithingPlugin.craftOnce(context, level, holder.value(), base)) {
+                if (SmithingPlugin.craftOnce(context, level, holder.value(), base, sample)) {
                     done++;
                 }
             }
@@ -90,7 +97,7 @@ public class SmithingPlugin implements TerminalPlugin {
 
     /** 尝试用这个基底完成一次该配方的锻造。 */
     private static boolean craftOnce(PluginContext context, ServerLevel level,
-                                     SmithingRecipe recipe, ItemStack base) {
+                                     SmithingRecipe recipe, ItemStack base, PluginSample sample) {
         if (!recipe.isBaseIngredient(base)) {
             return false;
         }
@@ -134,6 +141,7 @@ public class SmithingPlugin implements TerminalPlugin {
             return false;
         }
         context.insertIntoStorage(result);
+        context.pluginStack().set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
         return true;
     }
 

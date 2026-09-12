@@ -461,19 +461,13 @@ public final class PluginViews {
     private static final class SmithingView implements PluginSettingsView {
         @Override
         public int height(ItemStack plugin) {
-            return 14 + 3 * 18;
+            return 54;
         }
 
         @Override
         public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
                            int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
-            SmithingSettings settings = plugin.getOrDefault(
-                AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT);
-            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.batch", settings.batch()),
-                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.smithing_tip");
-            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y, mouseX, mouseY);
         }
     }
 
@@ -517,29 +511,13 @@ public final class PluginViews {
     private static final class AnvilProcessView implements PluginSettingsView {
         @Override
         public int height(ItemStack plugin) {
-            return 3 * 18 + 6 + 54;
+            return 54;
         }
 
         @Override
         public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
                            int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
-            AnvilProcessSettings settings = plugin.getOrDefault(
-                AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT);
-            ctx.settingButton(graphics, minecraft, x, y, width, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.process",
-                PluginViews.tr("screen.anvilcraft_terminal_plugins.anvil_process."
-                    + settings.process().getSerializedName())),
-                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.process_tip");
-            ctx.settingButton(graphics, minecraft, x, y + 18, width, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.process_batch", settings.batch()),
-                pluginIndex, -1, PluginActionPacket.CYCLE_SECONDARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
-            ctx.settingButton(graphics, minecraft, x, y + 36, width, PluginViews.tr(
-                "screen.anvilcraft_terminal_plugins.setting.process_now"),
-                pluginIndex, -1, PluginActionPacket.ANVIL_PROCESS_NOW, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.process_now_tip");
-            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
+            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y, mouseX, mouseY);
         }
     }
 

@@ -126,6 +126,26 @@ AddonLangHandler.extra(
             "Runs this time: %s"
         );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.process_now", "Process now");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.smithing_now", "Forge now");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.execute", "Run");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.execute_tip",
+            "Open the run page: pick a recipe, set the input, see the output"
+        );
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.input", "In");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.exec.output", "Out");
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.exec.auto",
+            "Runs automatically, up to %s per cycle"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.input_slot_tip",
+            "Left click with a carried item to pin the input, right click to clear"
+        );
+        AddonLangHandler.extra(
+            "screen.anvilcraft_terminal_plugins.panel.smithing_now_tip",
+            "Royal forging table rules: the template is not consumed, base and addition are"
+        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.stamping", "Stamping");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.crush", "Crushing");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.anvil_process.compress", "Compressing");

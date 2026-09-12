@@ -9,6 +9,7 @@
 package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 
 import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
@@ -129,6 +130,12 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         if (inputs.isEmpty() || results.isEmpty()) {
             return false;
         }
+        // 输入槽（PLUGIN_SAMPLE）：指定了就只做能吃下这个物品的配方
+        PluginSample sample = context.pluginStack().getOrDefault(
+            AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+        if (sample.hasSample() && inputs.stream().noneMatch(input -> input.test(sample.sample()))) {
+            return false;
+        }
         // 过滤表可选：留空 = 不限制（点了按钮才加工，玩家是主动触发的）
         for (ItemIngredientPredicate input : inputs) {
             if (context.storage().count(
@@ -169,6 +176,12 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         for (ItemStack stack : produced) {
             context.insertIntoStorage(stack);
         }
+        // 输出槽：把这次的产物写回插件物品，玩家在「执行」页能直接看到
+        context.pluginStack().set(
+            AddonDataComponents.PLUGIN_SAMPLE,
+            context.pluginStack().getOrDefault(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY)
+                .withOutput(produced.get(0).copy())
+        );
         return true;
     }
 

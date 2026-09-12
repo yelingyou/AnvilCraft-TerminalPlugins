@@ -89,6 +89,8 @@ public record PluginActionPacket(
     public static final int ANVIL_PROCESS_NOW = 23;
     /** 会执行配方的插件：设置输入槽（空物品 = 清空）。 */
     public static final int SET_SAMPLE_SLOT = 24;
+    /** 即时动作：锻造一次（皇家锻造台语义）。 */
+    public static final int SMITHING_NOW = 25;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -351,7 +353,7 @@ public record PluginActionPacket(
                 );
                 return plugin;
             });
-            case ANVIL_PROCESS_NOW -> {
+            case ANVIL_PROCESS_NOW, SMITHING_NOW -> {
                 ItemStack pluginStack = TerminalPluginManager.installed(terminal).get(packet.pluginIndex());
                 TerminalPlugin plugin = TerminalPluginRegistry.behaviorOf(pluginStack).orElse(null);
                 if (plugin != null) {
