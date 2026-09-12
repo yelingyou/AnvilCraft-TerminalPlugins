@@ -11,6 +11,7 @@
 - 模组 ID：`anvilcraft_terminal_plugins`
 - 许可：**LGPL-3.0-or-later**（与铁砧工艺一致，见 `LICENSE`；第三方声明见 `NOTICE`）
 - 依赖：AnvilCraft `1.6.0+`（Cjsah Maven）、AnvilLib（随 AnvilCraft 一起提供）
+- 下载：**[Releases](https://github.com/yelingyou/AnvilCraft-TerminalPlugins/releases/latest)** —— 直接下 `anvilcraft_terminal_plugins-neoforge-1.21.1-x.y.z.jar` 放进 `mods/` 即可（另附 sources jar）
 - 开源：欢迎 Issue / PR
 
 ---
