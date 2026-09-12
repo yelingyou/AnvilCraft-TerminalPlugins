@@ -4,14 +4,14 @@
  *
  * This file is part of AnvilCraft-TerminalPlugins, an addon for AnvilCraft.
  * Licensed under the GNU Lesser General Public License v3.0 or later.
- * See the LICENSE file in the project root for the full license text.
+ * See the LICENSE file in the project root for full license text.
  */
 package dev.anvilcraft.addon.terminalplugins.client.screen;
 
 import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
 import dev.anvilcraft.addon.terminalplugins.client.TerminalPluginClientEvents;
 import dev.anvilcraft.addon.terminalplugins.inventory.PluginStationMenu;
-import dev.anvilcraft.addon.terminalplugins.network.UninstallPluginsPacket;
+import dev.anvilcraft.addon.terminalplugins.network.StationActionPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -24,8 +24,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
-// 插件安装台界面：不依赖贴图，直接用色块绘制面板与槽位。
-// 已安装插件以「幽灵图标」展示在终端右侧的一行里，方便确认插件确实装到了终端上。
+/**
+ * 插件安装台界面。
+ *
+ * <p>三块区域：左边 0 号槽放终端、下面 3×3 暂存槽放插件、右边三个按钮分别做
+ * 「安装全部」「全部取下」「调节插件」。暂存槽**不会**自动安装，避免插件放进去就消失、
+ * 玩家搞不清到底装上了没有。</p>
+ */
 public class PluginStationScreen extends AbstractContainerScreen<PluginStationMenu> {
     private static final int PANEL_COLOR = 0xFF1E1E22;
     private static final int BORDER_COLOR = 0xFF6E6E78;
@@ -47,13 +52,23 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
     protected void init() {
         super.init();
         this.addRenderableWidget(Button.builder(
+            Component.translatable("screen.anvilcraft_terminal_plugins.install_all"),
+            button -> PacketDistributor.sendToServer(new StationActionPacket(
+                this.menu.getPos(),
+                StationActionPacket.INSTALL_ALL
+            ))
+        ).bounds(this.leftPos + 98, this.topPos + 18, 70, 16).build());
+        this.addRenderableWidget(Button.builder(
             Component.translatable("screen.anvilcraft_terminal_plugins.uninstall_all"),
-            button -> PacketDistributor.sendToServer(new UninstallPluginsPacket(this.menu.getPos()))
-        ).bounds(this.leftPos + 98, this.topPos + 50, 70, 16).build());
+            button -> PacketDistributor.sendToServer(new StationActionPacket(
+                this.menu.getPos(),
+                StationActionPacket.UNINSTALL_ALL
+            ))
+        ).bounds(this.leftPos + 98, this.topPos + 38, 70, 16).build());
         this.addRenderableWidget(Button.builder(
             Component.translatable("screen.anvilcraft_terminal_plugins.panel.open"),
             button -> TerminalPluginClientEvents.openForStation(this::terminalStack, this.menu.getPos())
-        ).bounds(this.leftPos + 98, this.topPos + 70, 70, 16).build());
+        ).bounds(this.leftPos + 98, this.topPos + 58, 70, 16).build());
     }
 
     private ItemStack terminalStack() {
@@ -92,11 +107,15 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
         for (int index = 0; index < 6; index++) {
             PluginStationScreen.drawGhostSlot(graphics, x + 46 + index * 18, y + 19);
         }
-        graphics.drawString(this.font, Component.translatable("screen.anvilcraft_terminal_plugins.installed"), x + 46, y + 8, PluginStationScreen.DIM_COLOR, false);
+        graphics.drawString(this.font, Component.translatable(
+            "screen.anvilcraft_terminal_plugins.installed", plugins.size()), x + 46, y + 8,
+            PluginStationScreen.DIM_COLOR, false);
         for (int index = 0; index < Math.min(plugins.size(), 6); index++) {
             graphics.renderItem(plugins.get(index), x + 47 + index * 18, y + 20);
         }
-        graphics.drawString(this.font, Component.translatable("screen.anvilcraft_terminal_plugins.staging"), x + 26, y + 40, PluginStationScreen.DIM_COLOR, false);
+        graphics.drawString(this.font, Component.translatable(
+            "screen.anvilcraft_terminal_plugins.staging"), x + 26, y + 40,
+            PluginStationScreen.DIM_COLOR, false);
     }
 
     private static void drawSlot(GuiGraphics graphics, int x, int y) {
@@ -114,14 +133,12 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         graphics.drawString(this.font, this.title, this.leftPos + 8, this.topPos + 6, PluginStationScreen.TEXT_COLOR, false);
-        graphics.drawString(
-            this.font,
-            Component.translatable("screen.anvilcraft_terminal_plugins.hint"),
-            this.leftPos + 98,
-            this.topPos + 90,
-            PluginStationScreen.DIM_COLOR,
-            false
-        );
+        graphics.drawString(this.font, Component.translatable(
+            "screen.anvilcraft_terminal_plugins.station.hint1"), this.leftPos + 98, this.topPos + 82,
+            PluginStationScreen.DIM_COLOR, false);
+        graphics.drawString(this.font, Component.translatable(
+            "screen.anvilcraft_terminal_plugins.station.hint2"), this.leftPos + 98, this.topPos + 92,
+            PluginStationScreen.DIM_COLOR, false);
         this.renderTooltip(graphics, mouseX, mouseY);
     }
 }

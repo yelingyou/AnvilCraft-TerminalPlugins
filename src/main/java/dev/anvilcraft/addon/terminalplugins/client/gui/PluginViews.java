@@ -1,7 +1,6 @@
 package dev.anvilcraft.addon.terminalplugins.client.gui;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
-import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
@@ -38,7 +37,6 @@ public final class PluginViews {
             case ALCHEMY -> new AlchemyView();
             case VOID -> new VoidView();
             case COMPACTING -> new CompactingView();
-            case ANVIL_REPAIR -> new AnvilRepairView();
             case FLUID -> new FluidView();
             case TOOL_SWAP -> new ToolSwapView();
             case MOB_CATCHER -> new MobCatcherView();
@@ -295,27 +293,6 @@ public final class PluginViews {
         }
     }
 
-    // 铁砧修复：每次修复点数 + 过滤表（材料）
-    private static final class AnvilRepairView implements PluginSettingsView {
-        @Override
-        public int height(ItemStack plugin) {
-            return 14 + 3 * 18;
-        }
-
-        @Override
-        public void render(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft, ItemStack plugin,
-                           int pluginIndex, int x, int y, int width, int mouseX, int mouseY) {
-            AnvilRepairSettings settings = plugin.getOrDefault(
-                AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT);
-            String label = settings.repairPerMaterial() == 0
-                ? PluginViews.tr("screen.anvilcraft_terminal_plugins.setting.repair_quarter")
-                : PluginViews.tr("screen.anvilcraft_terminal_plugins.setting.repair_amount", settings.repairPerMaterial());
-            ctx.settingButton(graphics, minecraft, x, y, width, label,
-                pluginIndex, -1, PluginActionPacket.CYCLE_PRIMARY, mouseX, mouseY,
-                "screen.anvilcraft_terminal_plugins.panel.cycle_tip");
-            PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 14, mouseX, mouseY);
-        }
-    }
 
     // 流体接口：工作模式 / 每周期批数 / 缓冲容量 + 过滤表（筛可用的容器）
     private static final class FluidView implements PluginSettingsView {

@@ -9,7 +9,6 @@
 package dev.anvilcraft.addon.terminalplugins.item;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
-import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
@@ -94,7 +93,6 @@ public class TerminalPluginItem extends Item {
             case FILTER -> TerminalPluginItem.cycleFilter(stack, secondary);
             case VOID -> TerminalPluginItem.cycleVoid(stack, secondary);
             case COMPACTING -> TerminalPluginItem.cycleCompacting(stack, secondary);
-            case ANVIL_REPAIR -> TerminalPluginItem.cycleAnvilRepair(stack, secondary);
             case FLUID -> TerminalPluginItem.cycleFluid(stack, secondary);
             case TOOL_SWAP -> TerminalPluginItem.cycleToolSwap(stack, secondary);
             case MOB_CATCHER -> TerminalPluginItem.cycleMobCatcher(stack, secondary);
@@ -298,7 +296,6 @@ public class TerminalPluginItem extends Item {
     }
 
     private static final int[] COMPACTING_BATCHES = {1, 2, 4, 8, 16};
-    private static final int[] REPAIR_AMOUNTS = {0, 25, 50, 100, 200, 500};
 
     // 压缩：切换每次处理组数
     private static Component cycleCompacting(ItemStack stack, boolean secondary) {
@@ -309,17 +306,6 @@ public class TerminalPluginItem extends Item {
         return Component.translatable("screen.anvilcraft_terminal_plugins.setting.batch", next);
     }
 
-    // 铁砧修复：切换每次消耗 1 个材料修复的耐久点数（0 = 最大耐久的四分之一）
-    private static Component cycleAnvilRepair(ItemStack stack, boolean secondary) {
-        AnvilRepairSettings settings = stack.getOrDefault(
-            AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT);
-        int next = TerminalPluginItem.nextInCycle(
-            TerminalPluginItem.REPAIR_AMOUNTS, settings.repairPerMaterial());
-        stack.set(AddonDataComponents.ANVIL_REPAIR_SETTINGS, settings.withRepairPerMaterial(next));
-        return next == 0
-            ? Component.translatable("screen.anvilcraft_terminal_plugins.setting.repair_quarter")
-            : Component.translatable("screen.anvilcraft_terminal_plugins.setting.repair_amount", next);
-    }
 
     private static Component cycleFilter(ItemStack stack, boolean secondary) {
         FilterContent content = stack.getOrDefault(ModComponents.FILTER_CONTENT, new FilterContent());

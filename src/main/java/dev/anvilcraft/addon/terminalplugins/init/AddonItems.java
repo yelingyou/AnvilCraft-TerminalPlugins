@@ -9,7 +9,6 @@
 package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
-import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
@@ -88,15 +87,6 @@ public class AddonItems {
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
             .component(AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT))
         .lang("Terminal Compacting Plugin")
-        .register();
-
-    /** 铁砧修复插件：用存储里的材料修复受损装备。 */
-    public static final ItemEntry<TerminalPluginItem> ANVIL_REPAIR_PLUGIN = REGISTRUM
-        .item("anvil_repair_plugin", properties -> new TerminalPluginItem(PluginKind.ANVIL_REPAIR, properties))
-        .properties(properties -> properties
-            .component(ModComponents.FILTER_CONTENT, new FilterContent())
-            .component(AddonDataComponents.ANVIL_REPAIR_SETTINGS, AnvilRepairSettings.DEFAULT))
-        .lang("Terminal Anvil Repair Plugin")
         .register();
 
     /** 流体接口插件：终端自带储液缓冲，与存储里的桶 / 瓶互换流体。 */

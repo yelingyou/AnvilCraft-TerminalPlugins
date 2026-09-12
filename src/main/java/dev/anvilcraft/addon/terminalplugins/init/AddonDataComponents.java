@@ -10,7 +10,6 @@ package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
-import dev.anvilcraft.addon.terminalplugins.component.AnvilRepairSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
@@ -73,12 +72,6 @@ public class AddonDataComponents {
     public static final DataComponentType<CompactingSettings> COMPACTING_SETTINGS = AddonDataComponents.register(
         "compacting_settings",
         b -> b.persistent(CompactingSettings.CODEC).networkSynchronized(CompactingSettings.STREAM_CODEC)
-    );
-
-    /** 铁砧修复插件。 */
-    public static final DataComponentType<AnvilRepairSettings> ANVIL_REPAIR_SETTINGS = AddonDataComponents.register(
-        "anvil_repair_settings",
-        b -> b.persistent(AnvilRepairSettings.CODEC).networkSynchronized(AnvilRepairSettings.STREAM_CODEC)
     );
 
     /** 流体接口插件配置。 */

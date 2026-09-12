@@ -10,15 +10,15 @@ package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
 import dev.anvilcraft.addon.terminalplugins.network.PluginFeedbackPacket;
-import dev.anvilcraft.addon.terminalplugins.network.UninstallPluginsPacket;
+import dev.anvilcraft.addon.terminalplugins.network.StationActionPacket;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class AddonNetworks {
     public static void init(PayloadRegistrar registrar) {
         registrar.playToServer(
-            UninstallPluginsPacket.TYPE,
-            UninstallPluginsPacket.STREAM_CODEC,
-            UninstallPluginsPacket.HANDLER
+            StationActionPacket.TYPE,
+            StationActionPacket.STREAM_CODEC,
+            StationActionPacket.HANDLER
         );
         registrar.playToServer(
             PluginActionPacket.TYPE,

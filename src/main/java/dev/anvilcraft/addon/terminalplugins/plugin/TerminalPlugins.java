@@ -9,7 +9,6 @@
 package dev.anvilcraft.addon.terminalplugins.plugin;
 
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.AlchemyPlugin;
-import dev.anvilcraft.addon.terminalplugins.plugin.impl.AnvilRepairPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.AutoCookingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.CompactingPlugin;
 import dev.anvilcraft.addon.terminalplugins.plugin.impl.FeedingPlugin;
@@ -37,7 +36,6 @@ public final class TerminalPlugins {
         TerminalPluginRegistry.register(new AlchemyPlugin());
         TerminalPluginRegistry.register(new VoidPlugin());
         TerminalPluginRegistry.register(new CompactingPlugin());
-        TerminalPluginRegistry.register(new AnvilRepairPlugin());
         TerminalPluginRegistry.register(new FluidPlugin());
         TerminalPluginRegistry.register(new ToolSwapPlugin());
         TerminalPluginRegistry.register(new MobCatcherPlugin());

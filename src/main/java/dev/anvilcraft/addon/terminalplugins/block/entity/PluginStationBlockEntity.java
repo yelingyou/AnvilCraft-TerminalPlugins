@@ -29,9 +29,9 @@ import java.util.List;
 /**
  * 插件安装台的方块实体。
  *
- * <p>槽位布局：0 号槽放终端，1..PLUGIN_SLOTS 号槽放待安装的插件。
- * 插件放进暂存槽后会自动装到终端上（已安装列表会显示在界面里），
- * uninstallAll() 则把所有已安装插件拆回暂存槽。</p>
+ * <p>槽位布局：0 号槽放终端，1..PLUGIN_SLOTS 号槽是**暂存槽**。
+ * 暂存槽里的插件不会自动安装：安装与取下都由界面上的按钮明确触发
+ * （{@link #applyPlugins()} / {@link #uninstallAll()}），玩家能看清每一步发生了什么。</p>
  */
 public class PluginStationBlockEntity extends BlockEntity {
     public static final int TERMINAL_SLOT = 0;
@@ -39,7 +39,7 @@ public class PluginStationBlockEntity extends BlockEntity {
     public static final int PLUGIN_SLOTS = InstalledPlugins.MAX_SLOTS;
     public static final int SLOT_COUNT = PluginStationBlockEntity.PLUGIN_SLOTS_START + PluginStationBlockEntity.PLUGIN_SLOTS;
 
-    /** 防止「写槽位 → 触发自动安装 → 再写槽位」的递归。 */
+    /** 内部批量写槽位时置位，避免写一次槽位就同步一次方块与脏标记。 */
     private boolean applying = false;
 
     private final ItemStackHandler inventory = new ItemStackHandler(PluginStationBlockEntity.SLOT_COUNT) {
@@ -61,9 +61,6 @@ public class PluginStationBlockEntity extends BlockEntity {
                     PluginStationBlockEntity.this.getBlockState(),
                     Block.UPDATE_ALL
                 );
-            }
-            if (!PluginStationBlockEntity.this.applying) {
-                PluginStationBlockEntity.this.applyPlugins();
             }
         }
     };
@@ -211,9 +208,14 @@ public class PluginStationBlockEntity extends BlockEntity {
         }
     }
 
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
+    /**
+     * 把仓库里的东西全部掉落在方块位置。
+     *
+     * <p><b>只能由 {@code PluginStationBlock#onRemove} 调用</b>：原版 {@code LevelChunk#clearAllBlockEntities()}
+     * 在**区块卸载**时也会调用 {@code BlockEntity#setRemoved()}，之前把掉落写在 {@code setRemoved()} 里，
+     * 玩家一走远台面上的终端和插件就会掉一地 —— 这是安装台「没法用」的直接原因。</p>
+     */
+    public void dropContents() {
         if (this.level != null && !this.level.isClientSide) {
             for (int slot = 0; slot < this.inventory.getSlots(); slot++) {
                 ItemStack stack = this.inventory.getStackInSlot(slot);

@@ -43,9 +43,6 @@ public class PluginStationBlock extends Block implements EntityBlock {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (level.getBlockEntity(pos) instanceof PluginStationBlockEntity station) {
-            station.applyPlugins();
-        }
         MenuProvider provider = new SimpleMenuProvider(
             (containerId, inventory, p) -> new dev.anvilcraft.addon.terminalplugins.inventory.PluginStationMenu(
                 containerId, inventory, pos
@@ -54,6 +51,20 @@ public class PluginStationBlock extends Block implements EntityBlock {
         );
         player.openMenu(provider, pos);
         return InteractionResult.CONSUME;
+    }
+
+    /**
+     * 只有方块真的被移除时才掉落内容物。
+     *
+     * <p>不能写在 {@code BlockEntity#setRemoved()} 里：区块卸载同样会调用它，
+     * 那样玩家走远一点东西就全掉地上了。</p>
+     */
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof PluginStationBlockEntity station) {
+            station.dropContents();
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Nullable

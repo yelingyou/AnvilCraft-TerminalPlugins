@@ -22,7 +22,15 @@ public class AddonLangHandler {
     static {
         AddonLangHandler.extra("container.anvilcraft_terminal_plugins.plugin_station", "Terminal Plugin Station");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.uninstall_all", "Uninstall All");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.hint", "Left: terminal, right: plugins");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.install_all", "Install all");
+AddonLangHandler.extra(
+    "screen.anvilcraft_terminal_plugins.station.hint1",
+    "Staged plugins are not installed automatically"
+);
+AddonLangHandler.extra(
+    "screen.anvilcraft_terminal_plugins.station.hint2",
+    "A terminal left on the station does not work - take it back"
+);
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.setting", "%s → %s");
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.no_terminal", "No terminal found on you");
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.stale_plugin", "That plugin is no longer installed");
@@ -140,17 +148,7 @@ public class AddonLangHandler {
             "plugin.anvilcraft_terminal_plugins.compacting_plugin.desc",
             "Compacts 9 matching items into 1 using vanilla crafting recipes"
         );
-        AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.anvil_repair_plugin", "Anvil Repair Plugin");
-        AddonLangHandler.extra(
-            "plugin.anvilcraft_terminal_plugins.anvil_repair_plugin.desc",
-            "Repairs damaged gear in the storage with matching materials"
-        );
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.batch", "Per cycle: %s");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.repair_amount", "Repair %s per material");
-        AddonLangHandler.extra(
-            "screen.anvilcraft_terminal_plugins.setting.repair_quarter",
-            "Repair 1/4 of max durability per material"
-        );
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.alchemy_plugin", "Alchemy Plugin");
         AddonLangHandler.extra(
             "plugin.anvilcraft_terminal_plugins.alchemy_plugin.desc",
@@ -232,8 +230,8 @@ public class AddonLangHandler {
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.trigger_tip", "Click to cycle the trigger condition");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.radius_tip", "Click to enlarge the radius / right click to shrink it");
         AddonLangHandler.extra("tooltip.anvilcraft_terminal_plugins.magnet.mode.both", "Magnet + Pickup");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.installed", "Installed");
-        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.staging", "Staging");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.installed", "%s plugins installed");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.staging", "Staging (click Install all)");
         AddonLangHandler.extra("tooltip.anvilcraft_terminal_plugins.plugin.panel_hint", "Press K in the terminal screen to adjust plugins");
         AddonLangHandler.extra("key.categories.anvilcraft_terminal_plugins", "AnvilCraft Terminal Plugins");
         AddonLangHandler.extra("key.anvilcraft_terminal_plugins.open_panel", "Open plugin panel");
