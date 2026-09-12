@@ -7,11 +7,10 @@
   ],
   "ingredients": [
     {
-      "count": 3,
-      "items": "minecraft:iron_ingot"
+      "items": "anvilcraft:circuit_board"
     },
     {
-      "items": "minecraft:redstone"
+      "items": "minecraft:brewing_stand"
     }
   ],
   "results": [

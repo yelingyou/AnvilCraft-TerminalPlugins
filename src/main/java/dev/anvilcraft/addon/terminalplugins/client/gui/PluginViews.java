@@ -7,6 +7,7 @@ import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -281,7 +282,7 @@ public final class PluginViews {
     private static final class CompactingView implements PluginSettingsView {
         @Override
         public int height(ItemStack plugin) {
-            return 14 + 3 * 18;
+            return 14 + 18 + 54;
         }
 
         @Override
@@ -480,7 +481,7 @@ public final class PluginViews {
     private static final class ChargingView implements PluginSettingsView {
         @Override
         public int height(ItemStack plugin) {
-            return 4 * 18;
+            return 4 * 18 + 22;
         }
 
         @Override
@@ -540,6 +541,25 @@ public final class PluginViews {
                 "screen.anvilcraft_terminal_plugins.panel.process_now_tip");
             PluginViews.drawFilterGrid(ctx, graphics, plugin, pluginIndex, x, y + 3 * 18 + 6, mouseX, mouseY);
         }
+    }
+
+    /**
+     * 输入槽 + 输出槽。输入槽可点（左键放入光标物品、右键清空），输出槽只读，
+     * 显示服务端上一次成功加工出来的东西。会执行配方的插件共用这一对槽位。
+     */
+    private static void drawRecipeSlots(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft,
+                                        ItemStack plugin, int pluginIndex, int x, int y) {
+        PluginSample sample = plugin.getOrDefault(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+        ctx.ghostSlot(graphics, x, y, sample.sample(), pluginIndex, -1,
+            PluginActionPacket.SET_SAMPLE_SLOT, "screen.anvilcraft_terminal_plugins.panel.input_slot_tip");
+        graphics.drawString(minecraft.font, ">", x + 22, y + 5, 0xFF9A9AA4, false);
+        graphics.fill(x + 38, y - 1, x + 56, y + 17, 0xFF4E7A4E);
+        graphics.fill(x + 39, y, x + 55, y + 16, 0xFF2A3329);
+        if (!sample.lastOutput().isEmpty()) {
+            graphics.renderItem(sample.lastOutput(), x + 39, y);
+        }
+        graphics.drawString(minecraft.font, PluginViews.tr(
+            "screen.anvilcraft_terminal_plugins.panel.output_slot"), x + 60, y + 5, 0xFF9A9AA4, false);
     }
 
     private static String magnetMode(MagnetSettings settings) {

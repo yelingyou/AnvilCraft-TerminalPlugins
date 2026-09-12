@@ -13,6 +13,7 @@ import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntit
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
 import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ToolSwapSettings;
 import dev.anvilcraft.addon.terminalplugins.component.XpPumpSettings;
@@ -86,6 +87,8 @@ public record PluginActionPacket(
     public static final int TOGGLE_CHARGING_ITEMS = 22;
     /** 即时动作：铁砧加工一次（由插件自己实现 onAction）。 */
     public static final int ANVIL_PROCESS_NOW = 23;
+    /** 会执行配方的插件：设置输入槽（空物品 = 清空）。 */
+    public static final int SET_SAMPLE_SLOT = 24;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -365,6 +368,17 @@ public record PluginActionPacket(
                     }
                 }
             }
+            case SET_SAMPLE_SLOT -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                PluginSample sample = plugin.getOrDefault(
+                    AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+                plugin.set(
+                    AddonDataComponents.PLUGIN_SAMPLE,
+                    sample.withSample(packet.filter().isEmpty()
+                        ? ItemStack.EMPTY
+                        : packet.filter().copyWithCount(1))
+                );
+                return plugin;
+            });
             default -> {
             }
         }

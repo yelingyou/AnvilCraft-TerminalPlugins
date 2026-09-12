@@ -4,7 +4,7 @@
  *
  * This file is part of AnvilCraft-TerminalPlugins, an addon for AnvilCraft.
  * Licensed under the GNU Lesser General Public License v3.0 or later.
- * See the LICENSE file in the project root for the full license text.
+ * See the LICENSE file in the project root for full license text.
  */
 package dev.anvilcraft.addon.terminalplugins.inventory;
 
@@ -26,11 +26,33 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 
 import javax.annotation.Nullable;
 
-// 插件安装台界面：左侧终端 + 已安装插件展示，中间 3x3 暂存槽，右侧操作按钮。
+/**
+ * 插件安装台界面。
+ *
+ * <p>布局常量全部集中在这里（{@link #LAYOUT_}），界面绘制直接读同一批常量，
+ * 不会出现「槽位画在这里、可点击区域在那里」的错位。</p>
+ */
 public class PluginStationMenu extends AbstractContainerMenu {
-    private static final int PLAYER_SLOTS_START = PluginStationBlockEntity.SLOT_COUNT;
     private static final int PLAYER_INVENTORY_ROWS = 3;
     private static final int PLAYER_COLUMNS = 9;
+
+    /** 面板尺寸与关键 Y 坐标（单位：像素，和原版容器界面同一套坐标系）。 */
+    public static final int PANEL_WIDTH = 176;
+    public static final int PANEL_HEIGHT = 220;
+    /** 玩家背包标题的 Y：下面留出 12 像素再放第一行槽位，不会被网格压住。 */
+    public static final int PLAYER_LABEL_Y = 126;
+
+    public static final int TERMINAL_SLOT_X = 26;
+    public static final int TERMINAL_SLOT_Y = 28;
+    public static final int STAGING_X = 26;
+    public static final int STAGING_Y = 56;
+    public static final int PLAYER_INV_Y = 138;
+    public static final int HOTBAR_Y = 196;
+    public static final int BUTTON_X = 98;
+    public static final int BUTTON_Y = 56;
+    public static final int BUTTON_WIDTH = 70;
+    public static final int BUTTON_HEIGHT = 16;
+    public static final int BUTTON_GAP = 4;
 
     private final BlockPos pos;
     private final IItemHandler stationInventory;
@@ -67,7 +89,12 @@ public class PluginStationMenu extends AbstractContainerMenu {
         this.stationInventory = stationInventory;
         this.access = ContainerLevelAccess.create(playerInventory.player.level(), pos);
 
-        this.addSlot(new SlotItemHandler(stationInventory, PluginStationBlockEntity.TERMINAL_SLOT, 26, 20) {
+        this.addSlot(new SlotItemHandler(
+            stationInventory,
+            PluginStationBlockEntity.TERMINAL_SLOT,
+            PluginStationMenu.TERMINAL_SLOT_X,
+            PluginStationMenu.TERMINAL_SLOT_Y
+        ) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return PluginStationBlockEntity.isTerminal(stack);
@@ -79,8 +106,8 @@ public class PluginStationMenu extends AbstractContainerMenu {
             this.addSlot(new SlotItemHandler(
                 stationInventory,
                 PluginStationBlockEntity.PLUGIN_SLOTS_START + index,
-                26 + column * 18,
-                50 + row * 18
+                PluginStationMenu.STAGING_X + column * 18,
+                PluginStationMenu.STAGING_Y + row * 18
             ) {
                 @Override
                 public boolean mayPlace(ItemStack stack) {
@@ -95,12 +122,12 @@ public class PluginStationMenu extends AbstractContainerMenu {
                     playerInventory,
                     column + row * PluginStationMenu.PLAYER_COLUMNS + PluginStationMenu.PLAYER_COLUMNS,
                     8 + column * 18,
-                    104 + row * 18
+                    PluginStationMenu.PLAYER_INV_Y + row * 18
                 ));
             }
         }
         for (int column = 0; column < PluginStationMenu.PLAYER_COLUMNS; column++) {
-            this.addSlot(new Slot(playerInventory, column, 8 + column * 18, 162));
+            this.addSlot(new Slot(playerInventory, column, 8 + column * 18, PluginStationMenu.HOTBAR_Y));
         }
     }
 
@@ -122,15 +149,15 @@ public class PluginStationMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack result = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
         if (slot == null || !slot.hasItem()) {
             return ItemStack.EMPTY;
         }
         ItemStack stack = slot.getItem();
-        result = stack.copy();
-        if (index < PluginStationMenu.PLAYER_SLOTS_START) {
-            if (!this.moveItemStackTo(stack, PluginStationMenu.PLAYER_SLOTS_START, this.slots.size(), true)) {
+        ItemStack result = stack.copy();
+        int stationSlots = PluginStationBlockEntity.SLOT_COUNT;
+        if (index < stationSlots) {
+            if (!this.moveItemStackTo(stack, stationSlots, this.slots.size(), true)) {
                 return ItemStack.EMPTY;
             }
         } else if (PluginStationBlockEntity.isTerminal(stack)) {
@@ -141,7 +168,7 @@ public class PluginStationMenu extends AbstractContainerMenu {
             if (!this.moveItemStackTo(
                 stack,
                 PluginStationBlockEntity.PLUGIN_SLOTS_START,
-                PluginStationBlockEntity.SLOT_COUNT,
+                stationSlots,
                 false
             )) {
                 return ItemStack.EMPTY;

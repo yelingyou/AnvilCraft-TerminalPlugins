@@ -15,6 +15,7 @@ import dev.anvilcraft.addon.terminalplugins.component.VoidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -87,7 +88,8 @@ public class AddonItems {
         .item("compacting_plugin", properties -> new TerminalPluginItem(PluginKind.COMPACTING, properties))
         .properties(properties -> properties
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
-            .component(AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT))
+            .component(AddonDataComponents.COMPACTING_SETTINGS, CompactingSettings.DEFAULT)
+            .component(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY))
         .lang("Terminal Compacting Plugin")
         .register();
 
@@ -134,18 +136,17 @@ public class AddonItems {
         .item("smithing_plugin", properties -> new TerminalPluginItem(PluginKind.SMITHING, properties))
         .properties(properties -> properties
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
-            .component(AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT))
+            .component(AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT)
+            .component(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY))
         .lang("Terminal Smithing Plugin")
         .register();
 
     /** 充能插件：接入电网，跑本体充能配方并给 FE 物品充电。 */
     public static final ItemEntry<TerminalPluginItem> CHARGING_PLUGIN = REGISTRUM
         .item("charging_plugin", properties -> new TerminalPluginItem(PluginKind.CHARGING, properties))
-        .properties(properties -> properties.component(
-            AddonDataComponents.CHARGING_SETTINGS,
-            ChargingSettings.DEFAULT
-        ))
-        .lang("Terminal Charging Plugin")
+        .properties(properties -> properties
+            .component(AddonDataComponents.CHARGING_SETTINGS, ChargingSettings.DEFAULT)
+            .component(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY))
         .register();
 
     /** 铁砧加工插件：在界面里手动批量执行本体的铁砧加工方式。 */
@@ -153,7 +154,8 @@ public class AddonItems {
         .item("anvil_process_plugin", properties -> new TerminalPluginItem(PluginKind.ANVIL_PROCESS, properties))
         .properties(properties -> properties
             .component(ModComponents.FILTER_CONTENT, new FilterContent())
-            .component(AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT))
+            .component(AddonDataComponents.ANVIL_PROCESS_SETTINGS, AnvilProcessSettings.DEFAULT)
+            .component(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY))
         .lang("Terminal Anvil Process Plugin")
         .register();
 

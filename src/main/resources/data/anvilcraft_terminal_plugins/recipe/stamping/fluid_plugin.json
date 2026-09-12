@@ -7,11 +7,11 @@
   ],
   "ingredients": [
     {
-      "count": 3,
-      "items": "minecraft:iron_ingot"
+      "items": "anvilcraft:circuit_board"
     },
     {
-      "items": "minecraft:redstone"
+      "count": 2,
+      "items": "minecraft:glass"
     }
   ],
   "results": [

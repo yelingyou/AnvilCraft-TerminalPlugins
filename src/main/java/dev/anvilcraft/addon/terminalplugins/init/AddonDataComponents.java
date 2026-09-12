@@ -14,6 +14,7 @@ import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.CompactingSettings;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
 import dev.anvilcraft.addon.terminalplugins.component.ChargingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.FluidSettings;
 import dev.anvilcraft.addon.terminalplugins.component.MobCatcherSettings;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
@@ -127,6 +128,12 @@ public class AddonDataComponents {
             "anvil_process_settings",
             b -> b.persistent(AnvilProcessSettings.CODEC).networkSynchronized(AnvilProcessSettings.STREAM_CODEC)
         );
+
+    /** 会执行配方的插件的输入/输出槽内容。 */
+    public static final DataComponentType<PluginSample> PLUGIN_SAMPLE = AddonDataComponents.register(
+        "plugin_sample",
+        b -> b.persistent(PluginSample.CODEC).networkSynchronized(PluginSample.STREAM_CODEC)
+    );
 
     /** 炼金插件：条件自动用药（对齐精妙背包炼金升级语义）。 */
     public static final DataComponentType<AlchemySettings> ALCHEMY_SETTINGS = AddonDataComponents.register(

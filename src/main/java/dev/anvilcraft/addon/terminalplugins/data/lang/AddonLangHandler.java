@@ -23,13 +23,23 @@ public class AddonLangHandler {
         AddonLangHandler.extra("container.anvilcraft_terminal_plugins.plugin_station", "Terminal Plugin Station");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.uninstall_all", "Uninstall All");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.install_all", "Install all");
+AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.station.terminal", "Terminal");
 AddonLangHandler.extra(
-    "screen.anvilcraft_terminal_plugins.station.hint1",
-    "Staged plugins are not installed automatically"
+    "screen.anvilcraft_terminal_plugins.station.installed",
+    "%s / %s plugins installed"
+);
+AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.station.staging_slots", "Staging");
+AddonLangHandler.extra(
+    "screen.anvilcraft_terminal_plugins.station.install_tip",
+    "Install the staged plugins into the terminal (staging never installs by itself)"
 );
 AddonLangHandler.extra(
-    "screen.anvilcraft_terminal_plugins.station.hint2",
-    "A terminal left on the station does not work - take it back"
+    "screen.anvilcraft_terminal_plugins.station.uninstall_tip",
+    "Move every installed plugin back into the staging slots"
+);
+AddonLangHandler.extra(
+    "screen.anvilcraft_terminal_plugins.station.panel_tip",
+    "Open the plugin panel to inspect and configure installed plugins"
 );
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.setting", "%s → %s");
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.no_terminal", "No terminal found on you");
