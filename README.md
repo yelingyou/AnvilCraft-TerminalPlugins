@@ -1,5 +1,7 @@
 # AnvilCraft-TerminalPlugins（铁砧工艺：终端插件）
 
+![封面 / Cover](docs/cover.png)
+
 给 **铁砧工艺（AnvilCraft 1.6 / MC 1.21.1 / NeoForge）** 的 **本地终端 / 潜影终端 / 超维终端**
 做一套「插件（升级模块）」体系的附属模组 —— 形态参照精妙背包的升级插件。
 
