@@ -2,7 +2,32 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
-## 〇、最新一轮改动（安装台修复 + 终端内插件面板 + 炼金语义重写）
+## 〇之前、本轮改动（JEI 重叠 + 喂食插件失效）
+
+| 问题 | 根因 | 修复 |
+|---|---|---|
+| 插件面板与 JEI 重叠 | 面板固定在屏幕**右侧**，而 JEI 的素材列表默认就在右侧 | 默认锚点改到屏幕**左侧**，并支持**按住「≡」按钮拖动**面板；位置持久化到 `config/anvilcraft_terminal_plugins_panel.txt` |
+| 喂食插件（以及其它插件）不生效 | **时钟错配**：派发器用 `player.tickCount % 10`，插件内部用 `gameTime % k`。两者相差固定偏移，当偏移不是间隔的公倍数时条件**永不成立** | 统一为同一时钟（`PluginContext#tick` = `player.tickCount`），派发与插件判定共用 |
+
+时钟问题的数值验证（4000 tick 内触发次数，喂食 = 派发 10 / 插件 20）：
+
+```
+offset(gameTime - tickCount)   旧实现   新实现
+        0                      200      200
+        3                        0      200
+        5                        0      200
+        7                        0      200
+       13                        0      200
+```
+
+即：玩家进入世界时若 `gameTime - tickCount` 不是 10 的倍数，**喂食插件整局都不会触发**；修复后稳定每 20 tick 一次。
+
+另外新增可选的 `debug_logging` 配置项，打开后日志会打印 `plugin-dispatch` / `plugin-run`，便于排查插件是否派发、存储是否可达。
+
+本轮验证：`compileJava`、`runData build`（jar 162KB）、`runServer`（`Done (11.996s)!`）均通过；
+配置文件已生成 `debug_logging = false` 选项。
+
+## 〇、上一轮改动（安装台修复 + 终端内插件面板 + 炼金语义重写）
 
 | 项目 | 内容 | 验证 |
 |---|---|---|

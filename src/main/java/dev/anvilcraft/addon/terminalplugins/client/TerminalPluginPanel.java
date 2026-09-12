@@ -1,11 +1,3 @@
-/*
- * SPDX-License-Identifier: LGPL-3.0-or-later
- * Copyright (C) 2026 AnvilCraft-TerminalPlugins contributors
- *
- * This file is part of AnvilCraft-TerminalPlugins, an addon for AnvilCraft.
- * Licensed under the GNU Lesser General Public License v3.0 or later.
- * See the LICENSE file in the project root for the full license text.
- */
 package dev.anvilcraft.addon.terminalplugins.client;
 
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
@@ -22,22 +14,31 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-// 终端插件调节面板：以叠加层形式画在存储界面之上，不会关闭玩家已打开的终端界面。
-// 支持：查看已安装插件、单独开关、切换主/副档位、排序、卸下，以及炼金插件逐条配置。
+// 终端插件调节面板：叠加在存储界面之上，不关闭玩家已打开的界面。
+// 位置默认贴屏幕左侧（JEI 的素材列表默认在右侧，避免重叠）；按住「插件」按钮可拖动整个面板，
+// 位置记在 config/anvilcraft_terminal_plugins_panel.txt，下次进游戏仍然生效。
 public class TerminalPluginPanel {
+    private static final int BUTTON_WIDTH = 52;
+    private static final int BUTTON_HEIGHT = 14;
     private static final int PANEL_WIDTH = 158;
     private static final int PANEL_HEIGHT = 190;
+    private static final int DRAG_THRESHOLD = 3;
+    private static final String POSITION_FILE = "anvilcraft_terminal_plugins_panel.txt";
+
     private static final int COLOR_PANEL = 0xF0181820;
     private static final int COLOR_BORDER = 0xFF6E6E78;
     private static final int COLOR_SLOT = 0xFF37373B;
     private static final int COLOR_TEXT = 0xFFE0E0E6;
     private static final int COLOR_DIM = 0xFF9A9AA4;
-    private static final int COLOR_BUTTON = 0xFF3C3C46;
+    private static final int COLOR_BUTTON = 0xFF2A2A33;
     private static final int COLOR_BUTTON_HOVER = 0xFF565666;
     private static final int COLOR_SELECTED = 0xFF4A4A5C;
 
@@ -60,6 +61,16 @@ public class TerminalPluginPanel {
     private boolean open = false;
     private int selected = 0;
     private Target target;
+
+    private boolean positionLoaded = false;
+    private int anchorX = 4;
+    private int anchorY = 22;
+    private boolean dragging = false;
+    private boolean pendingToggle = false;
+    private int dragStartMouseX;
+    private int dragStartMouseY;
+    private int dragStartAnchorX;
+    private int dragStartAnchorY;
 
     public boolean isOpen() {
         return this.open;
@@ -85,29 +96,69 @@ public class TerminalPluginPanel {
         this.open(newTarget);
     }
 
-    private ItemStack terminal() {
-        return this.target == null ? ItemStack.EMPTY : this.target.stackSupplier().get();
+    // ---------- 位置与拖动 ----------
+
+    private void ensurePosition(Minecraft minecraft) {
+        if (this.positionLoaded) {
+            return;
+        }
+        this.positionLoaded = true;
+        Path path = TerminalPluginPanel.positionPath(minecraft);
+        try {
+            if (Files.exists(path)) {
+                String[] parts = Files.readString(path).trim().split("\\s+");
+                if (parts.length >= 2) {
+                    this.anchorX = Integer.parseInt(parts[0]);
+                    this.anchorY = Integer.parseInt(parts[1]);
+                }
+            }
+        } catch (IOException | NumberFormatException ignored) {
+            // 读不到就用默认位置
+        }
+        this.clampToScreen(minecraft);
+    }
+
+    private static Path positionPath(Minecraft minecraft) {
+        return minecraft.gameDirectory.toPath().resolve("config").resolve(TerminalPluginPanel.POSITION_FILE);
+    }
+
+    private void savePosition(Minecraft minecraft) {
+        try {
+            Path path = TerminalPluginPanel.positionPath(minecraft);
+            Files.createDirectories(path.getParent());
+            Files.writeString(path, this.anchorX + " " + this.anchorY);
+        } catch (IOException ignored) {
+            // 存不下来也不影响本次游戏
+        }
+    }
+
+    private void clampToScreen(Minecraft minecraft) {
+        int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+        int screenHeight = minecraft.getWindow().getGuiScaledHeight();
+        int totalHeight = TerminalPluginPanel.BUTTON_HEIGHT + 2 + TerminalPluginPanel.PANEL_HEIGHT;
+        this.anchorX = Math.max(0, Math.min(this.anchorX, Math.max(0, screenWidth - TerminalPluginPanel.PANEL_WIDTH)));
+        this.anchorY = Math.max(0, Math.min(this.anchorY, Math.max(0, screenHeight - totalHeight)));
     }
 
     private int left(Minecraft minecraft) {
-        return minecraft.getWindow().getGuiScaledWidth() - TerminalPluginPanel.PANEL_WIDTH - 6;
+        this.ensurePosition(minecraft);
+        return this.anchorX;
     }
 
-    private int top() {
-        return 18;
+    private int top(Minecraft minecraft) {
+        this.ensurePosition(minecraft);
+        return this.anchorY;
     }
 
-    public static int buttonX(Minecraft minecraft) {
-        return minecraft.getWindow().getGuiScaledWidth() - 58;
+    private int panelTop(Minecraft minecraft) {
+        return this.top(minecraft) + TerminalPluginPanel.BUTTON_HEIGHT + 2;
     }
 
-    public static int buttonY() {
-        return 4;
-    }
-
-    public static boolean isOverToggleButton(Minecraft minecraft, double mouseX, double mouseY) {
-        return mouseX >= TerminalPluginPanel.buttonX(minecraft) && mouseX < TerminalPluginPanel.buttonX(minecraft) + 52
-               && mouseY >= TerminalPluginPanel.buttonY() && mouseY < TerminalPluginPanel.buttonY() + 14;
+    public boolean isOverToggleButton(Minecraft minecraft, double mouseX, double mouseY) {
+        int x = this.left(minecraft);
+        int y = this.top(minecraft);
+        return mouseX >= x && mouseX < x + TerminalPluginPanel.BUTTON_WIDTH
+               && mouseY >= y && mouseY < y + TerminalPluginPanel.BUTTON_HEIGHT;
     }
 
     public boolean isOverPanel(Minecraft minecraft, double mouseX, double mouseY) {
@@ -115,12 +166,23 @@ public class TerminalPluginPanel {
             return false;
         }
         int x = this.left(minecraft);
-        int y = this.top();
+        int y = this.panelTop(minecraft);
         return mouseX >= x && mouseX < x + TerminalPluginPanel.PANEL_WIDTH
                && mouseY >= y && mouseY < y + TerminalPluginPanel.PANEL_HEIGHT;
     }
 
+    // ---------- 鼠标 ----------
+
     public boolean mouseClicked(Minecraft minecraft, double mouseX, double mouseY, int button) {
+        if (this.isOverToggleButton(minecraft, mouseX, mouseY)) {
+            this.pendingToggle = true;
+            this.dragging = false;
+            this.dragStartMouseX = (int) mouseX;
+            this.dragStartMouseY = (int) mouseY;
+            this.dragStartAnchorX = this.left(minecraft);
+            this.dragStartAnchorY = this.top(minecraft);
+            return true;
+        }
         for (Region region : this.regions) {
             if (region.contains(mouseX, mouseY)) {
                 this.dispatch(region, button);
@@ -128,6 +190,38 @@ public class TerminalPluginPanel {
             }
         }
         return this.isOverPanel(minecraft, mouseX, mouseY);
+    }
+
+    public boolean mouseDragged(Minecraft minecraft, double mouseX, double mouseY) {
+        if (!this.pendingToggle && !this.dragging) {
+            return false;
+        }
+        int dx = (int) mouseX - this.dragStartMouseX;
+        int dy = (int) mouseY - this.dragStartMouseY;
+        if (!this.dragging) {
+            if (Math.abs(dx) < TerminalPluginPanel.DRAG_THRESHOLD
+                && Math.abs(dy) < TerminalPluginPanel.DRAG_THRESHOLD) {
+                return true;
+            }
+            this.dragging = true;
+            this.pendingToggle = false;
+        }
+        this.anchorX = this.dragStartAnchorX + dx;
+        this.anchorY = this.dragStartAnchorY + dy;
+        this.clampToScreen(minecraft);
+        return true;
+    }
+
+    public boolean mouseReleased(Minecraft minecraft) {
+        boolean handled = this.pendingToggle || this.dragging;
+        if (this.dragging) {
+            this.savePosition(minecraft);
+        } else if (this.pendingToggle) {
+            this.toggle(this.heldTarget());
+        }
+        this.pendingToggle = false;
+        this.dragging = false;
+        return handled;
     }
 
     private void dispatch(Region region, int button) {
@@ -178,12 +272,15 @@ public class TerminalPluginPanel {
         ));
     }
 
+    private ItemStack terminal() {
+        return this.target == null ? ItemStack.EMPTY : this.target.stackSupplier().get();
+    }
+
     public static int findHeldTerminalSlot() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return Integer.MIN_VALUE;
         }
-        // 手持终端优先（即使还没装插件，也允许打开面板看空状态）
         if (TerminalPluginManager.isTerminal(minecraft.player.getMainHandItem())) {
             return -1;
         }
@@ -225,14 +322,16 @@ public class TerminalPluginPanel {
         return new Target(Optional.of(pos), -1, supplier);
     }
 
-    // 画出面板与入口按钮的提示文字由调用方绘制；这里只画面板本体。
+    // ---------- 绘制 ----------
+
     public void render(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
         this.regions.clear();
+        this.renderToggleButton(graphics, minecraft, mouseX, mouseY);
         if (!this.open) {
             return;
         }
         int x = this.left(minecraft);
-        int y = this.top();
+        int y = this.panelTop(minecraft);
         graphics.fill(x - 1, y - 1, x + TerminalPluginPanel.PANEL_WIDTH + 1, y + TerminalPluginPanel.PANEL_HEIGHT + 1, TerminalPluginPanel.COLOR_BORDER);
         graphics.fill(x, y, x + TerminalPluginPanel.PANEL_WIDTH, y + TerminalPluginPanel.PANEL_HEIGHT, TerminalPluginPanel.COLOR_PANEL);
         graphics.drawString(minecraft.font, Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 4, TerminalPluginPanel.COLOR_TEXT, false);
@@ -243,6 +342,7 @@ public class TerminalPluginPanel {
         List<ItemStack> plugins = TerminalPluginManager.installed(terminal);
         if (plugins.isEmpty()) {
             graphics.drawString(minecraft.font, Component.translatable("screen.anvilcraft_terminal_plugins.panel.empty"), x + 4, y + 20, TerminalPluginPanel.COLOR_DIM, false);
+            this.renderFooter(graphics, minecraft, x, y);
             return;
         }
         this.selected = Math.clamp(this.selected, 0, plugins.size() - 1);
@@ -312,6 +412,36 @@ public class TerminalPluginPanel {
             graphics.drawString(minecraft.font, String.valueOf(settings.radius()), x + 94, rowY + 2, TerminalPluginPanel.COLOR_TEXT, false);
             this.buttonText(graphics, minecraft, x + 106, rowY, 12, "+", Action.RADIUS_UP, this.selected, -1, mouseX, mouseY);
         }
+        this.renderFooter(graphics, minecraft, x, y);
+    }
+
+    private void renderToggleButton(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
+        int x = this.left(minecraft);
+        int y = this.top(minecraft);
+        int slot = TerminalPluginPanel.findHeldTerminalSlot();
+        ItemStack terminal = this.target != null ? this.terminal()
+            : (slot == Integer.MIN_VALUE ? ItemStack.EMPTY : TerminalPluginPanel.stackAt(slot));
+        boolean hasTerminal = !terminal.isEmpty();
+        int count = TerminalPluginManager.installed(terminal).size();
+        boolean hovered = this.isOverToggleButton(minecraft, mouseX, mouseY) || this.dragging;
+        graphics.fill(x, y, x + TerminalPluginPanel.BUTTON_WIDTH, y + TerminalPluginPanel.BUTTON_HEIGHT,
+            hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
+        graphics.drawString(minecraft.font, "==", x + 3, y + 3, TerminalPluginPanel.COLOR_DIM, false);
+        String label = Component.translatable("screen.anvilcraft_terminal_plugins.panel.button").getString() + " " + count;
+        graphics.drawString(minecraft.font, label, x + 16, y + 3,
+            hasTerminal ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
+        graphics.drawString(minecraft.font, this.open ? "v" : ">", x + TerminalPluginPanel.BUTTON_WIDTH - 8, y + 3, TerminalPluginPanel.COLOR_DIM, false);
+    }
+
+    private void renderFooter(GuiGraphics graphics, Minecraft minecraft, int x, int y) {
+        graphics.drawString(
+            minecraft.font,
+            Component.translatable("screen.anvilcraft_terminal_plugins.panel.drag_hint"),
+            x + 4,
+            y + TerminalPluginPanel.PANEL_HEIGHT - 11,
+            TerminalPluginPanel.COLOR_DIM,
+            false
+        );
     }
 
     private int button(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String translationKey,

@@ -26,6 +26,9 @@ public class TerminalPluginsConfig {
     @BoundedDiscrete(max = 16, min = 1)
     public int magnetDefaultRange = 5;
 
+    @Comment("在日志里打印插件派发信息，排查插件不生效时打开 / Log plugin dispatch details (for troubleshooting)")
+    public boolean debugLogging = false;
+
     @Comment("自动烹饪插件每次处理的最大物品数 / Max items handled per auto-cooking operation")
     @BoundedDiscrete(max = 64, min = 1)
     public int autoCookingBatchSize = 8;

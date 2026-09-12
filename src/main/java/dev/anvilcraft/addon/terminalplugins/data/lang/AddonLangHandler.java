@@ -106,6 +106,7 @@ public class AddonLangHandler {
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.disable", "Disable");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.remove", "Take out");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.alchemy", "Alchemy entries (click slot with potion in cursor)");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.drag_hint", "Drag the Plugins button to move this panel");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.installed", "Installed");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.staging", "Staging");
         AddonLangHandler.extra("tooltip.anvilcraft_terminal_plugins.plugin.panel_hint", "Press K in the terminal screen to adjust plugins");

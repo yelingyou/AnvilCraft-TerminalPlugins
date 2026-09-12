@@ -42,13 +42,23 @@ public class TerminalPluginEvents {
         if (interval <= 0 || player.tickCount % interval != 0) {
             return;
         }
-        long gameTime = player.level().getGameTime();
+        // 与插件内部使用同一个时钟（player.tickCount），避免相位错配导致插件永不触发
+        long tick = player.tickCount;
         for (ItemStack terminal : TerminalPluginEvents.findInstalledTerminals(player)) {
             List<ItemStack> plugins = TerminalPluginRegistry.installed(terminal);
             if (plugins.isEmpty()) {
                 continue;
             }
             TerminalStorage storage = TerminalStorageResolver.resolve(player, terminal);
+            if (AnvilCraftTerminalPlugins.CONFIG.debugLogging) {
+                AnvilCraftTerminalPlugins.LOGGER.info(
+                    "plugin-dispatch tick={} terminal={} plugins={} storage={}",
+                    tick,
+                    terminal.getHoverName().getString(),
+                    plugins.size(),
+                    storage.isReachable() ? "reachable(" + storage.storages().size() + ")" : "UNREACHABLE"
+                );
+            }
             for (ItemStack pluginStack : plugins) {
                 if (!TerminalPluginManager.isEnabled(pluginStack)) {
                     continue;
@@ -57,10 +67,18 @@ public class TerminalPluginEvents {
                 if (plugin == null || plugin.intervalTicks() <= 0) {
                     continue;
                 }
-                if (gameTime % plugin.intervalTicks() != 0) {
+                // 与派发器同一时钟，二者取模的交集恒非空（旧实现用 gameTime 会因固定相位差而永不触发）
+                if (plugin.intervalTicks() > 1 && tick % plugin.intervalTicks() != 0) {
                     continue;
                 }
-                plugin.onPlayerTick(new PluginContext(player, terminal, pluginStack, storage, gameTime));
+                if (AnvilCraftTerminalPlugins.CONFIG.debugLogging) {
+                    AnvilCraftTerminalPlugins.LOGGER.info(
+                        "plugin-run {} tick={}",
+                        pluginStack.getHoverName().getString(),
+                        tick
+                    );
+                }
+                plugin.onPlayerTick(new PluginContext(player, terminal, pluginStack, storage, tick));
             }
         }
     }

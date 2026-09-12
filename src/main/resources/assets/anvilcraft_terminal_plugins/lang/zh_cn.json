@@ -72,5 +72,6 @@
   "screen.anvilcraft_terminal_plugins.staging": "待安装",
   "tooltip.anvilcraft_terminal_plugins.plugin.panel_hint": "在终端界面按 K 打开插件调节面板",
   "key.categories.anvilcraft_terminal_plugins": "铁砧工艺：终端插件",
-  "key.anvilcraft_terminal_plugins.open_panel": "打开插件调节面板"
+  "key.anvilcraft_terminal_plugins.open_panel": "打开插件调节面板",
+  "screen.anvilcraft_terminal_plugins.panel.drag_hint": "按住「插件」按钮可拖动面板"
 }

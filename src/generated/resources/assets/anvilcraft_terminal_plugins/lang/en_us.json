@@ -1,6 +1,8 @@
 {
   "anvilcraft_terminal_plugins.configuration.auto_cooking_batch_size": "Auto Cooking Batch Size",
   "anvilcraft_terminal_plugins.configuration.auto_cooking_batch_size.tooltip": "自动烹饪插件每次处理的最大物品数 / Max items handled per auto-cooking operation",
+  "anvilcraft_terminal_plugins.configuration.debug_logging": "Debug Logging",
+  "anvilcraft_terminal_plugins.configuration.debug_logging.tooltip": "在日志里打印插件派发信息，排查插件不生效时打开 / Log plugin dispatch details (for troubleshooting)",
   "anvilcraft_terminal_plugins.configuration.magnet_default_range": "Magnet Default Range",
   "anvilcraft_terminal_plugins.configuration.magnet_default_range.tooltip": "磁吸/拾取插件默认工作半径 / Default radius of the magnet & pickup plugin",
   "anvilcraft_terminal_plugins.configuration.max_plugins_per_terminal": "Max Plugins Per Terminal",
@@ -37,6 +39,7 @@
   "screen.anvilcraft_terminal_plugins.panel.button": "Plugins",
   "screen.anvilcraft_terminal_plugins.panel.disable": "Disable",
   "screen.anvilcraft_terminal_plugins.panel.down": "v",
+  "screen.anvilcraft_terminal_plugins.panel.drag_hint": "Drag the Plugins button to move this panel",
   "screen.anvilcraft_terminal_plugins.panel.empty": "No plugins installed",
   "screen.anvilcraft_terminal_plugins.panel.enable": "Enable",
   "screen.anvilcraft_terminal_plugins.panel.open": "Adjust Plugins",

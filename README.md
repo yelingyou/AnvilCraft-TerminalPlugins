@@ -29,8 +29,10 @@
 
 界面形态对齐精妙背包的升级标签页 —— **在铁砧工艺的终端界面里**操作：
 
-- 打开方式：终端界面（存储界面）**右上角的「插件 N」按钮**，或按 **K**；安装台界面点「调节插件」；
+- 打开方式：终端界面（存储界面）里的 **「≡ 插件 N」按钮**，或按 **K**；安装台界面点「调节插件」；
 - 面板是叠加层，**不会关闭你已经打开的终端界面**；
+- **位置默认贴屏幕左侧**（JEI 的素材列表默认在右侧，避免重叠）；**按住「≡」按钮可以把整个面板拖到任意位置**，
+  拖动后的位置会记在 `config/anvilcraft_terminal_plugins_panel.txt`，下次进游戏仍然生效；
 - 面板里可以：
   - 查看终端上已安装的插件列表（图标 + 名称 + 开关状态）；
   - **主 / 副**：切换该插件的主档位与副档位；
@@ -82,6 +84,22 @@
 - **过滤统一入口**：所有自动入库都走 `PluginContext#insertIntoStorage`，在那里先过过滤插件。
 - **无 mixin**：完全不碰铁砧工艺内部实现。终端内的插件面板通过 NeoForge 的 `ScreenEvent`（Render.Post / MouseButtonPressed.Pre / KeyPressed.Pre）
   以叠加层形式画在 `StorageScreen` 上，所以不会关闭玩家已打开的终端界面，也不需要改铁砧工艺的源码。
+
+---
+
+### 1.3 插件不生效怎么排查
+
+把配置 `config/anvilcraft_terminal_plugins-common.toml` 里的 `debug_logging` 改成 `true`，
+日志（`logs/latest.log`）里会打印每次派发：
+
+```
+plugin-dispatch tick=120 terminal=本地终端 plugins=2 storage=reachable(1)
+plugin-run 终端自动喂食插件 tick=120
+```
+
+- 没有 `plugin-dispatch` ⇒ 终端不在物品栏/双手中，或没装插件；
+- `storage=UNREACHABLE` ⇒ 存储连不上（本地终端要 32 格内有大型板条箱；潜影终端要有潜影集装箱；超维终端要绑定存储）；
+- 有 `plugin-run` 但没反应 ⇒ 多半是插件自身条件没满足（存储里没有对应物品、饥饿值还够、药水不匹配等）。
 
 ---
 

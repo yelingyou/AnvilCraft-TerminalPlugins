@@ -60,7 +60,7 @@ public class AlchemyPlugin implements TerminalPlugin {
             AlchemySettings.DEFAULT
         );
         int interval = Math.max(1, settings.interval());
-        if (context.gameTime() % interval != 0) {
+        if (context.tick() % interval != 0) {
             return;
         }
         List<LivingEntity> targets = new ArrayList<>();

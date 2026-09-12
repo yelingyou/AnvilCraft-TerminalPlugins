@@ -1,6 +1,8 @@
 {
   "anvilcraft_terminal_plugins.configuration.auto_cooking_batch_size": "ǝzᴉS ɥɔʇɐᗺ ᵷuᴉʞooƆ oʇnⱯ",
   "anvilcraft_terminal_plugins.configuration.auto_cooking_batch_size.tooltip": "uoᴉʇɐɹǝdo ᵷuᴉʞooɔ-oʇnɐ ɹǝd pǝꞁpuɐɥ sɯǝʇᴉ xɐW / 数品物大最的理处次每件插饪烹动自",
+  "anvilcraft_terminal_plugins.configuration.debug_logging": "ᵷuᴉᵷᵷoꞀ ᵷnqǝᗡ",
+  "anvilcraft_terminal_plugins.configuration.debug_logging.tooltip": "(ᵷuᴉʇooɥsǝꞁqnoɹʇ ɹoɟ) sꞁᴉɐʇǝp ɥɔʇɐdsᴉp uᴉᵷnꞁd ᵷoꞀ / 开打时效生不件插查排，息信发派件插印打里志日在",
   "anvilcraft_terminal_plugins.configuration.magnet_default_range": "ǝᵷuɐᴚ ʇꞁnɐɟǝᗡ ʇǝuᵷɐW",
   "anvilcraft_terminal_plugins.configuration.magnet_default_range.tooltip": "uᴉᵷnꞁd dnʞɔᴉd & ʇǝuᵷɐɯ ǝɥʇ ɟo snᴉpɐɹ ʇꞁnɐɟǝᗡ / 径半作工认默件插取拾/吸磁",
   "anvilcraft_terminal_plugins.configuration.max_plugins_per_terminal": "ꞁɐuᴉɯɹǝ⟘ ɹǝԀ suᴉᵷnꞁԀ xɐW",
@@ -37,6 +39,7 @@
   "screen.anvilcraft_terminal_plugins.panel.button": "suᴉᵷnꞁԀ",
   "screen.anvilcraft_terminal_plugins.panel.disable": "ǝꞁqɐsᴉᗡ",
   "screen.anvilcraft_terminal_plugins.panel.down": "ʌ",
+  "screen.anvilcraft_terminal_plugins.panel.drag_hint": "ꞁǝuɐd sᴉɥʇ ǝʌoɯ oʇ uoʇʇnq suᴉᵷnꞁԀ ǝɥʇ ᵷɐɹᗡ",
   "screen.anvilcraft_terminal_plugins.panel.empty": "pǝꞁꞁɐʇsuᴉ suᴉᵷnꞁd oN",
   "screen.anvilcraft_terminal_plugins.panel.enable": "ǝꞁqɐuƎ",
   "screen.anvilcraft_terminal_plugins.panel.open": "suᴉᵷnꞁԀ ʇsnɾpⱯ",

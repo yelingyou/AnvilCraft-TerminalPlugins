@@ -50,7 +50,7 @@ public class AutoCookingPlugin implements TerminalPlugin {
             AddonDataComponents.COOKING_SETTINGS,
             AutoCookingSettings.DEFAULT
         );
-        if (settings.intervalTicks() <= 0 || context.gameTime() % settings.intervalTicks() != 0) {
+        if (settings.intervalTicks() <= 0 || context.tick() % settings.intervalTicks() != 0) {
             return;
         }
         ServerLevel level = context.player().serverLevel();
