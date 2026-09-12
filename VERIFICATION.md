@@ -2,7 +2,21 @@
 
 本文件记录 `AnvilCraft-TerminalPlugins` 的验证结果：**已经实测通过的部分**、验证方式，以及本环境特有的构建绕行方案。
 
-## 〇、本轮改动（对齐精妙背包的设置交互 + 开源许可修正）
+## 〇、P0：面板两级化 + 控件库 + 设置视图 + 失败反馈（版本 1.2.0）
+
+按《插件扩展计划》P0 落地，全部为架构性改造（玩家可见的变化是设置界面变成两级）：
+
+| 项 | 内容 |
+|---|---|
+| 两级面板 | 列表页 → 「设置」→ 插件设置子页（返回按钮、标题显示插件名与图标）；面板高度按子页内容**自适应** |
+| 设置视图接口 | 新增 `client/gui/PluginSettingsView`（含 `Ctx` 渲染上下文）与 `client/gui/PluginViews`（每种插件一个内部类实现）；面板不再为每种插件写 if-else |
+| 通用控件 | `settingButton`（显示当前值的按钮）、`smallButton`（- / + 步进）、`ghostSlot`（过滤/药水槽，左键放入右键清空）、tooltip |
+| 网络动作 | 新增 `SET_FILTER_SLOT`、`ADJUST_MAGNET_RANGE`、`ADJUST_FEEDING_THRESHOLD`；服务端统一走新增的 `TerminalPluginManager#update(terminal, index, operator)` |
+| 失败反馈 | 新增 `PluginFeedbackPacket`（服务端 → 客户端，快捷栏上方提示）；终端不在身上 / 插件索引过期时给出提示（对齐精妙背包的错误反馈包） |
+
+验证：`compileJava`、`runData build`（jar 1.2.0）、`runServer`（`Done (11.005s)!`，新 payload 注册未影响专用服务器加载）均通过。
+
+## 〇之前、上一轮改动（对齐精妙背包的设置交互 + 开源许可修正）
 
 **研究结论（精妙背包/Sophisticated Core 的升级设置怎么做）**：每个升级对应一个设置标签页，
 设置项一律是**"图标按钮 + 直接显示当前状态"**（`ButtonDefinition.Toggle`，如条件 NEVER/ALWAYS/ON_FIRE…），

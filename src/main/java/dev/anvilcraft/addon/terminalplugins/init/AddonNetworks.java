@@ -9,6 +9,7 @@
 package dev.anvilcraft.addon.terminalplugins.init;
 
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
+import dev.anvilcraft.addon.terminalplugins.network.PluginFeedbackPacket;
 import dev.anvilcraft.addon.terminalplugins.network.UninstallPluginsPacket;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -23,6 +24,11 @@ public class AddonNetworks {
             PluginActionPacket.TYPE,
             PluginActionPacket.STREAM_CODEC,
             PluginActionPacket.HANDLER
+        );
+        registrar.playToClient(
+            PluginFeedbackPacket.TYPE,
+            PluginFeedbackPacket.STREAM_CODEC,
+            PluginFeedbackPacket.HANDLER
         );
     }
 }

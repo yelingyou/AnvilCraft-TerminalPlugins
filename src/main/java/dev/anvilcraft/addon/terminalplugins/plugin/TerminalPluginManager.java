@@ -76,6 +76,18 @@ public final class TerminalPluginManager {
         return true;
     }
 
+    /** 通用更新：把第 index 枚插件交给 operator 修改后写回终端（新插件一律走这里）。 */
+    public static boolean update(ItemStack terminal, int index, UnaryOperator<ItemStack> operator) {
+        InstalledPlugins installed = terminal.getOrDefault(AddonDataComponents.INSTALLED_PLUGINS, InstalledPlugins.EMPTY);
+        if (index < 0 || index >= installed.size()) {
+            return false;
+        }
+        ItemStack plugin = installed.plugins().get(index).copy();
+        ItemStack updated = operator.apply(plugin);
+        terminal.set(AddonDataComponents.INSTALLED_PLUGINS, installed.replaced(index, updated));
+        return true;
+    }
+
     /** 打开 / 关闭某枚插件。 */
     public static boolean toggleEnabled(ItemStack terminal, int index) {
         InstalledPlugins installed = terminal.getOrDefault(AddonDataComponents.INSTALLED_PLUGINS, InstalledPlugins.EMPTY);

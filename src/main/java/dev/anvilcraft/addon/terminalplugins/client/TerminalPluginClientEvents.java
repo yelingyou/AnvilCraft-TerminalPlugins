@@ -5,6 +5,7 @@ import dev.anvilcraft.addon.terminalplugins.client.screen.PluginStationScreen;
 import dev.dubhe.anvilcraft.client.gui.screen.StorageScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -91,6 +92,14 @@ public class TerminalPluginClientEvents {
         } else if (event.getScreen() instanceof PluginStationScreen) {
             TerminalPluginClientEvents.panel().close();
             event.setCanceled(true);
+        }
+    }
+
+    // 服务端反馈（操作失败等）：显示在快捷栏上方
+    public static void showFeedback(String translationKey) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player != null) {
+            minecraft.player.displayClientMessage(Component.translatable(translationKey), true);
         }
     }
 

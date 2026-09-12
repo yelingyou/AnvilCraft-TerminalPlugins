@@ -11,13 +11,20 @@ package dev.anvilcraft.addon.terminalplugins.network;
 import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
 import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
+import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
+import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
+import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
 import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPluginManager;
+import dev.dubhe.anvilcraft.init.item.ModComponents;
+import dev.dubhe.anvilcraft.item.property.component.FilterContent;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
@@ -49,6 +56,9 @@ public record PluginActionPacket(
     public static final int ADJUST_ALCHEMY_VALUE = 8;
     public static final int CYCLE_ALCHEMY_NEARBY = 9;
     public static final int ADJUST_ALCHEMY_RADIUS = 10;
+    public static final int SET_FILTER_SLOT = 11;
+    public static final int ADJUST_MAGNET_RANGE = 12;
+    public static final int ADJUST_FEEDING_THRESHOLD = 13;
 
     public static final Type<PluginActionPacket> TYPE = new Type<>(
         AnvilCraftTerminalPlugins.of("plugin_action")
@@ -114,6 +124,12 @@ public record PluginActionPacket(
                 return;
             }
             if (terminal.isEmpty() || !TerminalPluginManager.isTerminal(terminal)) {
+                PluginActionPacket.sendFeedback(player, "message.anvilcraft_terminal_plugins.no_terminal");
+                return;
+            }
+            int pluginCount = TerminalPluginManager.installed(terminal).size();
+            if (packet.pluginIndex() < 0 || packet.pluginIndex() >= pluginCount) {
+                PluginActionPacket.sendFeedback(player, "message.anvilcraft_terminal_plugins.stale_plugin");
                 return;
             }
             ItemStack uninstalled = PluginActionPacket.apply(player, terminal, packet);
@@ -128,6 +144,10 @@ public record PluginActionPacket(
                 player.containerMenu.broadcastChanges();
             }
         });
+    }
+
+    private static void sendFeedback(ServerPlayer player, String key) {
+        PacketDistributor.sendToPlayer(player, new PluginFeedbackPacket(key));
     }
 
     /** 定位玩家身上（物品栏 / 双手）的终端物品堆栈。 */
@@ -195,6 +215,38 @@ public record PluginActionPacket(
                     settings.matchAmplifier()
                 )
             );
+            case SET_FILTER_SLOT -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                FilterContent content = plugin.getOrDefault(ModComponents.FILTER_CONTENT, new FilterContent());
+                NonNullList<ItemStack> list = NonNullList.of(
+                    ItemStack.EMPTY,
+                    content.list().toArray(new ItemStack[0])
+                );
+                int slot = Math.clamp(packet.entryIndex(), 0, Math.max(0, list.size() - 1));
+                if (slot < list.size()) {
+                    list.set(slot, packet.filter().isEmpty() ? ItemStack.EMPTY : packet.filter().copyWithCount(1));
+                }
+                plugin.set(ModComponents.FILTER_CONTENT, content.setList(list));
+                return plugin;
+            });
+            case ADJUST_MAGNET_RANGE -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                MagnetSettings magnetSettings = plugin.getOrDefault(
+                    AddonDataComponents.MAGNET_SETTINGS, MagnetSettings.DEFAULT);
+                plugin.set(
+                    AddonDataComponents.MAGNET_SETTINGS,
+                    magnetSettings.withRange(magnetSettings.range() + Math.round(packet.value()))
+                );
+                return plugin;
+            });
+            case ADJUST_FEEDING_THRESHOLD -> TerminalPluginManager.update(terminal, packet.pluginIndex(), plugin -> {
+                FeedingSettings feedingSettings = plugin.getOrDefault(
+                    AddonDataComponents.FEEDING_SETTINGS, FeedingSettings.DEFAULT);
+                plugin.set(AddonDataComponents.FEEDING_SETTINGS, new FeedingSettings(
+                    Math.clamp(feedingSettings.hungerThreshold() + Math.round(packet.value()), 1, 20),
+                    feedingSettings.allowHarmful(),
+                    feedingSettings.keepSaturation()
+                ));
+                return plugin;
+            });
             default -> {
             }
         }

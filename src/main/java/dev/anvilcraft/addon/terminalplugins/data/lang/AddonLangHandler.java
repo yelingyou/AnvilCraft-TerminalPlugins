@@ -24,6 +24,8 @@ public class AddonLangHandler {
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.uninstall_all", "Uninstall All");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.hint", "Left: terminal, right: plugins");
         AddonLangHandler.extra("message.anvilcraft_terminal_plugins.setting", "%s → %s");
+        AddonLangHandler.extra("message.anvilcraft_terminal_plugins.no_terminal", "No terminal found on you");
+        AddonLangHandler.extra("message.anvilcraft_terminal_plugins.stale_plugin", "That plugin is no longer installed");
 
         AddonLangHandler.extra("plugin.anvilcraft_terminal_plugins.filter_plugin", "Filter Plugin");
         AddonLangHandler.extra(
@@ -119,6 +121,9 @@ public class AddonLangHandler {
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.nearby", "Targets %s");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.setting.amplifier", "Amplifier %s");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.cycle_tip", "Click to cycle this setting");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.settings", "Set");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.back_tip", "Back to the plugin list");
+        AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.filter_slot_tip", "Left click puts the item in your cursor, right click clears");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.filter_tip", "Put a potion here: left click places the item in your cursor, right click clears");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.trigger_tip", "Click to cycle the trigger condition");
         AddonLangHandler.extra("screen.anvilcraft_terminal_plugins.panel.radius_tip", "Click to enlarge the radius / right click to shrink it");

@@ -89,5 +89,10 @@
   "tooltip.anvilcraft_terminal_plugins.magnet.mode.both": "磁吸 + 拾取",
   "screen.anvilcraft_terminal_plugins.panel.filter_tip": "在这里放药水：左键放入光标上的物品，右键清空",
   "screen.anvilcraft_terminal_plugins.panel.trigger_tip": "点击循环切换触发条件",
-  "screen.anvilcraft_terminal_plugins.panel.radius_tip": "左键增大半径 / 右键减小半径"
+  "screen.anvilcraft_terminal_plugins.panel.radius_tip": "左键增大半径 / 右键减小半径",
+  "screen.anvilcraft_terminal_plugins.panel.settings": "设置",
+  "screen.anvilcraft_terminal_plugins.panel.back_tip": "返回插件列表",
+  "screen.anvilcraft_terminal_plugins.panel.filter_slot_tip": "左键放入光标上的物品，右键清空",
+  "message.anvilcraft_terminal_plugins.no_terminal": "身上没有找到终端",
+  "message.anvilcraft_terminal_plugins.stale_plugin": "该插件已经不在终端上了"
 }

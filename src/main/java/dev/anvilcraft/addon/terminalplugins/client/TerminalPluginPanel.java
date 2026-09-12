@@ -1,16 +1,10 @@
 package dev.anvilcraft.addon.terminalplugins.client;
 
-import dev.anvilcraft.addon.terminalplugins.component.AlchemySettings;
-import dev.anvilcraft.addon.terminalplugins.component.AutoCookingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.FeedingSettings;
-import dev.anvilcraft.addon.terminalplugins.component.MagnetSettings;
-import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
+import dev.anvilcraft.addon.terminalplugins.client.gui.PluginSettingsView;
+import dev.anvilcraft.addon.terminalplugins.client.gui.PluginViews;
 import dev.anvilcraft.addon.terminalplugins.item.TerminalPluginItem;
 import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
-import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
 import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPluginManager;
-import dev.dubhe.anvilcraft.init.item.ModComponents;
-import dev.dubhe.anvilcraft.item.property.component.FilterContent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
@@ -27,16 +21,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-// 终端插件调节面板：叠加在存储界面之上，不关闭玩家已打开的界面。
-// 位置默认贴屏幕左侧（JEI 的素材列表默认在右侧，避免重叠）；按住「插件」按钮可拖动整个面板，
-// 位置记在 config/anvilcraft_terminal_plugins_panel.txt，下次进游戏仍然生效。
-public class TerminalPluginPanel {
+// 终端插件面板：两级结构（插件列表 / 单个插件的设置子页），对齐精妙背包的升级标签。
+// 叠加画在存储界面之上，不关闭玩家已打开的界面；按住「≡」按钮可拖动，位置会记住。
+public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private static final int BUTTON_WIDTH = 52;
     private static final int BUTTON_HEIGHT = 14;
     private static final int PANEL_WIDTH = 158;
-    private static final int PANEL_HEIGHT = 246;
     private static final int DRAG_THRESHOLD = 3;
+    private static final int VISIBLE_ROWS = 5;
     private static final String POSITION_FILE = "anvilcraft_terminal_plugins_panel.txt";
+
+    // 本地动作（非网络动作，用负数与 PluginActionPacket 的动作区分）
+    private static final int LOCAL_CLOSE = -1;
+    private static final int LOCAL_SELECT = -2;
+    private static final int LOCAL_SETTINGS = -3;
+    private static final int LOCAL_BACK = -4;
 
     private static final int COLOR_PANEL = 0xF0181820;
     private static final int COLOR_BORDER = 0xFF6E6E78;
@@ -47,12 +46,7 @@ public class TerminalPluginPanel {
     private static final int COLOR_BUTTON_HOVER = 0xFF565666;
     private static final int COLOR_SELECTED = 0xFF4A4A5C;
 
-    private enum Action {
-        CLOSE, SELECT, CYCLE_PRIMARY, CYCLE_SECONDARY, REMOVE, MOVE_UP, MOVE_DOWN, TOGGLE,
-        SET_ALCHEMY_FILTER, CYCLE_ALCHEMY_TRIGGER, VALUE_UP, VALUE_DOWN, CYCLE_ALCHEMY_NEARBY, RADIUS_UP, RADIUS_DOWN
-    }
-
-    private record Region(int x, int y, int width, int height, Action action, int pluginIndex, int entryIndex) {
+    private record Region(int x, int y, int width, int height, int action, int pluginIndex, int entryIndex) {
         boolean contains(double mouseX, double mouseY) {
             return mouseX >= this.x && mouseX < this.x + this.width && mouseY >= this.y && mouseY < this.y + this.height;
         }
@@ -63,9 +57,12 @@ public class TerminalPluginPanel {
     }
 
     private final List<Region> regions = new ArrayList<>();
+    private final List<Float> regionValues = new ArrayList<>();
     private final List<Region> tipRegions = new ArrayList<>();
     private final List<String> tipTexts = new ArrayList<>();
+
     private boolean open = false;
+    private boolean settingsOpen = false;
     private int selected = 0;
     private Target target;
 
@@ -85,11 +82,13 @@ public class TerminalPluginPanel {
 
     public void close() {
         this.open = false;
+        this.settingsOpen = false;
     }
 
     public void open(Target newTarget) {
         this.target = newTarget;
         this.open = newTarget != null;
+        this.settingsOpen = false;
         this.selected = 0;
     }
 
@@ -97,7 +96,7 @@ public class TerminalPluginPanel {
         if (this.open && newTarget != null && this.target != null
             && this.target.station().equals(newTarget.station())
             && this.target.containerSlot() == newTarget.containerSlot()) {
-            this.open = false;
+            this.close();
             return;
         }
         this.open(newTarget);
@@ -142,9 +141,8 @@ public class TerminalPluginPanel {
     private void clampToScreen(Minecraft minecraft) {
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
-        int totalHeight = TerminalPluginPanel.BUTTON_HEIGHT + 2 + TerminalPluginPanel.PANEL_HEIGHT;
         this.anchorX = Math.max(0, Math.min(this.anchorX, Math.max(0, screenWidth - TerminalPluginPanel.PANEL_WIDTH)));
-        this.anchorY = Math.max(0, Math.min(this.anchorY, Math.max(0, screenHeight - totalHeight)));
+        this.anchorY = Math.max(0, Math.min(this.anchorY, Math.max(0, screenHeight - 40)));
     }
 
     private int left(Minecraft minecraft) {
@@ -161,6 +159,20 @@ public class TerminalPluginPanel {
         return this.top(minecraft) + TerminalPluginPanel.BUTTON_HEIGHT + 2;
     }
 
+    // 面板高度按内容自适应（对齐精妙背包按子控件外接矩形推算尺寸的思路）
+    private int panelHeight(ItemStack terminal) {
+        List<ItemStack> plugins = TerminalPluginManager.installed(terminal);
+        if (!this.settingsOpen || plugins.isEmpty()) {
+            int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
+            return 18 + Math.max(rows, 1) * 14 + 4 + 15 + 12;
+        }
+        ItemStack plugin = plugins.get(Math.clamp(this.selected, 0, plugins.size() - 1));
+        int content = plugin.getItem() instanceof TerminalPluginItem item
+            ? PluginViews.of(item.kind()).height(plugin)
+            : 14;
+        return 18 + content + 4 + 12;
+    }
+
     public boolean isOverToggleButton(Minecraft minecraft, double mouseX, double mouseY) {
         int x = this.left(minecraft);
         int y = this.top(minecraft);
@@ -175,7 +187,7 @@ public class TerminalPluginPanel {
         int x = this.left(minecraft);
         int y = this.panelTop(minecraft);
         return mouseX >= x && mouseX < x + TerminalPluginPanel.PANEL_WIDTH
-               && mouseY >= y && mouseY < y + TerminalPluginPanel.PANEL_HEIGHT;
+               && mouseY >= y && mouseY < y + this.panelHeight(this.terminal());
     }
 
     // ---------- 鼠标 ----------
@@ -190,9 +202,9 @@ public class TerminalPluginPanel {
             this.dragStartAnchorY = this.top(minecraft);
             return true;
         }
-        for (Region region : this.regions) {
-            if (region.contains(mouseX, mouseY)) {
-                this.dispatch(region, button);
+        for (int index = 0; index < this.regions.size(); index++) {
+            if (this.regions.get(index).contains(mouseX, mouseY)) {
+                this.dispatch(index, button);
                 return true;
             }
         }
@@ -231,56 +243,112 @@ public class TerminalPluginPanel {
         return handled;
     }
 
-    private void dispatch(Region region, int button) {
-        if (region.action() == Action.CLOSE) {
-            this.close();
-            return;
-        }
-        if (region.action() == Action.SELECT) {
-            this.selected = region.pluginIndex();
-            return;
+    private static boolean isAdjustAction(int action) {
+        return action == PluginActionPacket.ADJUST_ALCHEMY_VALUE
+               || action == PluginActionPacket.ADJUST_ALCHEMY_RADIUS
+               || action == PluginActionPacket.ADJUST_MAGNET_RANGE
+               || action == PluginActionPacket.ADJUST_FEEDING_THRESHOLD;
+    }
+
+    private void dispatch(int regionIndex, int button) {
+        Region region = this.regions.get(regionIndex);
+        switch (region.action()) {
+            case LOCAL_CLOSE -> {
+                this.close();
+                return;
+            }
+            case LOCAL_SELECT -> {
+                this.selected = region.pluginIndex();
+                this.settingsOpen = false;
+                return;
+            }
+            case LOCAL_SETTINGS -> {
+                this.settingsOpen = true;
+                return;
+            }
+            case LOCAL_BACK -> {
+                this.settingsOpen = false;
+                return;
+            }
+            default -> {
+            }
         }
         if (this.target == null) {
             return;
         }
-        ItemStack filter = ItemStack.EMPTY;
-        if (region.action() == Action.SET_ALCHEMY_FILTER) {
+        int action = region.action();
+        float value = regionIndex < this.regionValues.size() ? this.regionValues.get(regionIndex) : 0.0F;
+        if (button == 1 && TerminalPluginPanel.isAdjustAction(action)) {
+            value = -value;
+        }
+        ItemStack payload = ItemStack.EMPTY;
+        if (action == PluginActionPacket.SET_FILTER_SLOT || action == PluginActionPacket.SET_ALCHEMY_FILTER) {
             Minecraft minecraft = Minecraft.getInstance();
             ItemStack carried = minecraft.player == null ? ItemStack.EMPTY : minecraft.player.containerMenu.getCarried();
-            filter = button == 1 || carried.isEmpty() ? ItemStack.EMPTY : carried.copyWithCount(1);
+            payload = button == 1 || carried.isEmpty() ? ItemStack.EMPTY : carried.copyWithCount(1);
         }
-        int action = switch (region.action()) {
-            case CYCLE_PRIMARY -> PluginActionPacket.CYCLE_PRIMARY;
-            case CYCLE_SECONDARY -> PluginActionPacket.CYCLE_SECONDARY;
-            case REMOVE -> PluginActionPacket.REMOVE;
-            case MOVE_UP -> PluginActionPacket.MOVE_UP;
-            case MOVE_DOWN -> PluginActionPacket.MOVE_DOWN;
-            case TOGGLE -> PluginActionPacket.TOGGLE_ENABLED;
-            case SET_ALCHEMY_FILTER -> PluginActionPacket.SET_ALCHEMY_FILTER;
-            case CYCLE_ALCHEMY_TRIGGER -> PluginActionPacket.CYCLE_ALCHEMY_TRIGGER;
-            case VALUE_UP, VALUE_DOWN -> PluginActionPacket.ADJUST_ALCHEMY_VALUE;
-            case CYCLE_ALCHEMY_NEARBY -> PluginActionPacket.CYCLE_ALCHEMY_NEARBY;
-            case RADIUS_UP, RADIUS_DOWN -> PluginActionPacket.ADJUST_ALCHEMY_RADIUS;
-            default -> -1;
-        };
-        if (action < 0) {
-            return;
-        }
-        float value = switch (region.action()) {
-            case VALUE_UP -> 0.05F;
-            case VALUE_DOWN -> -0.05F;
-            case RADIUS_UP -> 1.0F;
-            case RADIUS_DOWN -> -1.0F;
-            default -> 0.0F;
-        };
         PacketDistributor.sendToServer(new PluginActionPacket(
             this.target.station(), this.target.containerSlot(), action,
-            region.pluginIndex(), region.entryIndex(), filter, value
+            region.pluginIndex(), region.entryIndex(), payload, value
         ));
     }
 
+    // ---------- PluginSettingsView.Ctx 实现 ----------
+
+    @Override
+    public void settingButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String label,
+                              int pluginIndex, int entryIndex, int action, int mouseX, int mouseY, String tipKey) {
+        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
+        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
+        String text = minecraft.font.width(label) > width - 6 ? minecraft.font.plainSubstrByWidth(label, width - 6) : label;
+        graphics.drawString(minecraft.font, text, x + 3, y + 2, TerminalPluginPanel.COLOR_TEXT, false);
+        this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, tipKey);
+    }
+
+    @Override
+    public void smallButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String label,
+                            int pluginIndex, int entryIndex, int action, int mouseX, int mouseY) {
+        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
+        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
+        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2,
+            TerminalPluginPanel.COLOR_TEXT, false);
+        this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, null);
+    }
+
+    @Override
+    public void ghostSlot(GuiGraphics graphics, int x, int y, ItemStack shown, int pluginIndex, int entryIndex,
+                          int action, String tipKey) {
+        graphics.fill(x, y, x + 16, y + 16, TerminalPluginPanel.COLOR_SLOT);
+        if (!shown.isEmpty()) {
+            graphics.renderItem(shown, x, y);
+        }
+        this.addRegion(new Region(x, y, 16, 16, action, pluginIndex, entryIndex), 0.0F, tipKey);
+    }
+
+    @Override
+    public void pendingValue(float value) {
+        if (!this.regionValues.isEmpty()) {
+            this.regionValues.set(this.regionValues.size() - 1, value);
+        }
+    }
+
+    private void addRegion(Region region, float value, String tipKey) {
+        this.regions.add(region);
+        this.regionValues.add(value);
+        if (tipKey != null) {
+            this.tipRegions.add(region);
+            this.tipTexts.add(TerminalPluginPanel.tr(tipKey));
+        }
+    }
+
+    // ---------- 工具 ----------
+
     private ItemStack terminal() {
         return this.target == null ? ItemStack.EMPTY : this.target.stackSupplier().get();
+    }
+
+    private static String tr(String key, Object... args) {
+        return Component.translatable(key, args).getString();
     }
 
     public static int findHeldTerminalSlot() {
@@ -333,32 +401,64 @@ public class TerminalPluginPanel {
 
     public void render(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
         this.regions.clear();
+        this.regionValues.clear();
         this.tipRegions.clear();
         this.tipTexts.clear();
         this.renderToggleButton(graphics, minecraft, mouseX, mouseY);
         if (!this.open) {
             return;
         }
-        int x = this.left(minecraft);
-        int y = this.panelTop(minecraft);
-        graphics.fill(x - 1, y - 1, x + TerminalPluginPanel.PANEL_WIDTH + 1, y + TerminalPluginPanel.PANEL_HEIGHT + 1, TerminalPluginPanel.COLOR_BORDER);
-        graphics.fill(x, y, x + TerminalPluginPanel.PANEL_WIDTH, y + TerminalPluginPanel.PANEL_HEIGHT, TerminalPluginPanel.COLOR_PANEL);
-        graphics.drawString(minecraft.font, Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 4, TerminalPluginPanel.COLOR_TEXT, false);
-        graphics.drawString(minecraft.font, "x", x + TerminalPluginPanel.PANEL_WIDTH - 11, y + 5, TerminalPluginPanel.COLOR_DIM, false);
-        this.regions.add(new Region(x + TerminalPluginPanel.PANEL_WIDTH - 14, y + 2, 12, 12, Action.CLOSE, -1, -1));
-
         ItemStack terminal = this.terminal();
         List<ItemStack> plugins = TerminalPluginManager.installed(terminal);
+        int x = this.left(minecraft);
+        int y = this.panelTop(minecraft);
+        int height = this.panelHeight(terminal);
+        graphics.fill(x - 1, y - 1, x + TerminalPluginPanel.PANEL_WIDTH + 1, y + height + 1, TerminalPluginPanel.COLOR_BORDER);
+        graphics.fill(x, y, x + TerminalPluginPanel.PANEL_WIDTH, y + height, TerminalPluginPanel.COLOR_PANEL);
+        graphics.drawString(minecraft.font, "x", x + TerminalPluginPanel.PANEL_WIDTH - 11, y + 5, TerminalPluginPanel.COLOR_DIM, false);
+        this.addRegion(new Region(x + TerminalPluginPanel.PANEL_WIDTH - 14, y + 2, 12, 12, TerminalPluginPanel.LOCAL_CLOSE, -1, -1), 0.0F, null);
+
         if (plugins.isEmpty()) {
-            graphics.drawString(minecraft.font, Component.translatable("screen.anvilcraft_terminal_plugins.panel.empty"), x + 4, y + 20, TerminalPluginPanel.COLOR_DIM, false);
-            this.renderFooter(graphics, minecraft, x, y);
+            graphics.drawString(minecraft.font,
+                Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 5,
+                TerminalPluginPanel.COLOR_TEXT, false);
+            graphics.drawString(minecraft.font,
+                Component.translatable("screen.anvilcraft_terminal_plugins.panel.empty"), x + 4, y + 20,
+                TerminalPluginPanel.COLOR_DIM, false);
+            this.renderFooter(graphics, minecraft, x, y + height);
             return;
         }
         this.selected = Math.clamp(this.selected, 0, plugins.size() - 1);
+        ItemStack selectedPlugin = plugins.get(this.selected);
 
+        if (this.settingsOpen) {
+            // 设置子页：标题栏（返回 + 插件名）+ 插件自己的控件
+            this.addRegion(new Region(x + 2, y + 2, 12, 12, TerminalPluginPanel.LOCAL_BACK, -1, -1), 0.0F,
+                "screen.anvilcraft_terminal_plugins.panel.back_tip");
+            graphics.drawString(minecraft.font, "<", x + 5, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
+            String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 24
+                ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 24)
+                : selectedPlugin.getHoverName().getString();
+            graphics.renderItem(selectedPlugin, x + 16, y + 1);
+            graphics.drawString(minecraft.font, name, x + 34, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
+            if (selectedPlugin.getItem() instanceof TerminalPluginItem item) {
+                PluginViews.of(item.kind()).render(
+                    this, graphics, minecraft, selectedPlugin, this.selected,
+                    x + 4, y + 18, TerminalPluginPanel.PANEL_WIDTH - 8, mouseX, mouseY
+                );
+            }
+            this.renderTips(graphics, minecraft, mouseX, mouseY);
+            this.renderFooter(graphics, minecraft, x, y + height);
+            return;
+        }
+
+        // 插件列表页
+        graphics.drawString(minecraft.font,
+            Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 5,
+            TerminalPluginPanel.COLOR_TEXT, false);
         int rowY = y + 18;
-        int visibleRows = Math.min(plugins.size(), 5);
-        for (int index = 0; index < visibleRows; index++) {
+        int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
+        for (int index = 0; index < rows; index++) {
             ItemStack plugin = plugins.get(index);
             boolean hovered = mouseX >= x + 2 && mouseX < x + TerminalPluginPanel.PANEL_WIDTH - 2
                               && mouseY >= rowY && mouseY < rowY + 14;
@@ -370,77 +470,52 @@ public class TerminalPluginPanel {
             graphics.renderItem(plugin, x + 4, rowY - 1);
             boolean enabled = TerminalPluginManager.isEnabled(plugin);
             String name = plugin.getHoverName().getString();
-            graphics.drawString(minecraft.font, name, x + 24, rowY + 3, enabled ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
+            String label = minecraft.font.width(name) > TerminalPluginPanel.PANEL_WIDTH - 34
+                ? minecraft.font.plainSubstrByWidth(name, TerminalPluginPanel.PANEL_WIDTH - 34)
+                : name;
+            graphics.drawString(minecraft.font, label, x + 24, rowY + 3,
+                enabled ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
             if (!enabled) {
-                graphics.drawString(minecraft.font, "off", x + TerminalPluginPanel.PANEL_WIDTH - 20, rowY + 3, TerminalPluginPanel.COLOR_DIM, false);
+                graphics.drawString(minecraft.font, "off", x + TerminalPluginPanel.PANEL_WIDTH - 20, rowY + 3,
+                    TerminalPluginPanel.COLOR_DIM, false);
             }
-            this.regions.add(new Region(x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14, Action.SELECT, index, -1));
+            this.addRegion(new Region(x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14, TerminalPluginPanel.LOCAL_SELECT, index, -1), 0.0F, null);
             rowY += 14;
         }
-        if (plugins.size() > visibleRows) {
-            graphics.drawString(minecraft.font, "+" + (plugins.size() - visibleRows), x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, TerminalPluginPanel.COLOR_DIM, false);
+        if (plugins.size() > rows) {
+            graphics.drawString(minecraft.font, "+" + (plugins.size() - rows),
+                x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, TerminalPluginPanel.COLOR_DIM, false);
         }
 
-        ItemStack selectedPlugin = plugins.get(this.selected);
         int buttonY = rowY + 2;
         int buttonX = x + 3;
-        // 第一行：开关 / 排序 / 拆下
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 22, TerminalPluginManager.isEnabled(selectedPlugin)
-            ? "screen.anvilcraft_terminal_plugins.panel.disable"
-            : "screen.anvilcraft_terminal_plugins.panel.enable", Action.TOGGLE, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14, "screen.anvilcraft_terminal_plugins.panel.up", Action.MOVE_UP, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14, "screen.anvilcraft_terminal_plugins.panel.down", Action.MOVE_DOWN, this.selected, -1, mouseX, mouseY);
-        this.button(graphics, minecraft, buttonX, buttonY, 20, "screen.anvilcraft_terminal_plugins.panel.remove", Action.REMOVE, this.selected, -1, mouseX, mouseY);
-        rowY = buttonY + 15;
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 22,
+            TerminalPluginManager.isEnabled(selectedPlugin)
+                ? "screen.anvilcraft_terminal_plugins.panel.disable"
+                : "screen.anvilcraft_terminal_plugins.panel.enable",
+            PluginActionPacket.TOGGLE_ENABLED, this.selected, -1, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14,
+            "screen.anvilcraft_terminal_plugins.panel.up", PluginActionPacket.MOVE_UP, this.selected, -1, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14,
+            "screen.anvilcraft_terminal_plugins.panel.down", PluginActionPacket.MOVE_DOWN, this.selected, -1, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 20,
+            "screen.anvilcraft_terminal_plugins.panel.remove", PluginActionPacket.REMOVE, this.selected, -1, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 24,
+            "screen.anvilcraft_terminal_plugins.panel.settings", TerminalPluginPanel.LOCAL_SETTINGS, this.selected, -1, mouseX, mouseY);
 
-        // 与精妙背包的升级标签一致：每个设置是一个「显示当前值」的按钮，点一下循环切换，悬停显示说明
-        String primaryLabel = this.primaryLabel(selectedPlugin);
-        String secondaryLabel = this.secondaryLabel(selectedPlugin);
-        String cycleTip = "screen.anvilcraft_terminal_plugins.panel.cycle_tip";
-        if (primaryLabel != null) {
-            this.settingButton(graphics, minecraft, x + 3, rowY, TerminalPluginPanel.PANEL_WIDTH - 6, primaryLabel,
-                Action.CYCLE_PRIMARY, this.selected, mouseX, mouseY, cycleTip);
-            rowY += 14;
-        }
-        if (secondaryLabel != null) {
-            this.settingButton(graphics, minecraft, x + 3, rowY, TerminalPluginPanel.PANEL_WIDTH - 6, secondaryLabel,
-                Action.CYCLE_SECONDARY, this.selected, mouseX, mouseY, cycleTip);
-            rowY += 14;
-        }
-
-        if (selectedPlugin.getItem() instanceof TerminalPluginItem item && item.kind() == PluginKind.ALCHEMY) {
-            AlchemySettings settings = selectedPlugin.getOrDefault(AddonDataComponents.ALCHEMY_SETTINGS, AlchemySettings.DEFAULT);
-            graphics.drawString(minecraft.font, Component.translatable("screen.anvilcraft_terminal_plugins.panel.alchemy"), x + 4, rowY + 1, TerminalPluginPanel.COLOR_DIM, false);
-            rowY += 11;
-            List<AlchemySettings.AlchemyEntry> entries = settings.normalizedEntries();
-            for (int index = 0; index < entries.size(); index++) {
-                AlchemySettings.AlchemyEntry entry = entries.get(index);
-                graphics.fill(x + 4, rowY, x + 20, rowY + 16, TerminalPluginPanel.COLOR_SLOT);
-                if (!entry.filter().isEmpty()) {
-                    graphics.renderItem(entry.filter(), x + 4, rowY);
-                }
-                this.regionWithTip(new Region(x + 4, rowY, 16, 16, Action.SET_ALCHEMY_FILTER, this.selected, index),
-                    "screen.anvilcraft_terminal_plugins.panel.filter_tip");
-                String trigger = TerminalPluginPanel.tr(
-                    "tooltip.anvilcraft_terminal_plugins.alchemy.trigger." + entry.trigger().getSerializedName()
-                );
-                this.drawButton(graphics, minecraft, x + 22, rowY + 2, 62, trigger, Action.CYCLE_ALCHEMY_TRIGGER,
-                    this.selected, index, mouseX, mouseY, "screen.anvilcraft_terminal_plugins.panel.trigger_tip");
-                if (entry.trigger().usesValue()) {
-                    this.drawButton(graphics, minecraft, x + 86, rowY + 2, 12, "-", Action.VALUE_DOWN, this.selected, index, mouseX, mouseY, null);
-                    graphics.drawString(minecraft.font, String.format("%.2f", entry.value()), x + 100, rowY + 4, TerminalPluginPanel.COLOR_TEXT, false);
-                    this.drawButton(graphics, minecraft, x + 130, rowY + 2, 12, "+", Action.VALUE_UP, this.selected, index, mouseX, mouseY, null);
-                }
-                rowY += 18;
-            }
-            // 作用半径（作用范围本身由上面的「作用范围」设置按钮切换）
-            this.drawButton(graphics, minecraft, x + 4, rowY + 1, 62, TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.range", settings.radius()
-            ), Action.RADIUS_UP, this.selected, -1, mouseX, mouseY, "screen.anvilcraft_terminal_plugins.panel.radius_tip");
-            this.drawButton(graphics, minecraft, x + 68, rowY + 1, 12, "-", Action.RADIUS_DOWN, this.selected, -1, mouseX, mouseY, null);
-        }
         this.renderTips(graphics, minecraft, mouseX, mouseY);
-        this.renderFooter(graphics, minecraft, x, y);
+        this.renderFooter(graphics, minecraft, x, y + height);
+    }
+
+    private int button(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String translationKey,
+                       int action, int pluginIndex, int entryIndex, int mouseX, int mouseY) {
+        String label = TerminalPluginPanel.tr(translationKey);
+        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
+        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
+        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2,
+            TerminalPluginPanel.COLOR_TEXT, false);
+        this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, null);
+        return x + width + 2;
     }
 
     private void renderToggleButton(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
@@ -458,71 +533,14 @@ public class TerminalPluginPanel {
         String label = Component.translatable("screen.anvilcraft_terminal_plugins.panel.button").getString() + " " + count;
         graphics.drawString(minecraft.font, label, x + 16, y + 3,
             hasTerminal ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
-        graphics.drawString(minecraft.font, this.open ? "v" : ">", x + TerminalPluginPanel.BUTTON_WIDTH - 8, y + 3, TerminalPluginPanel.COLOR_DIM, false);
+        graphics.drawString(minecraft.font, this.open ? "v" : ">", x + TerminalPluginPanel.BUTTON_WIDTH - 8, y + 3,
+            TerminalPluginPanel.COLOR_DIM, false);
     }
 
     private void renderFooter(GuiGraphics graphics, Minecraft minecraft, int x, int y) {
-        graphics.drawString(
-            minecraft.font,
+        graphics.drawString(minecraft.font,
             Component.translatable("screen.anvilcraft_terminal_plugins.panel.drag_hint"),
-            x + 4,
-            y + TerminalPluginPanel.PANEL_HEIGHT - 11,
-            TerminalPluginPanel.COLOR_DIM,
-            false
-        );
-    }
-
-    private int button(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String translationKey,
-                       Action action, int pluginIndex, int entryIndex, int mouseX, int mouseY) {
-        return this.buttonText(graphics, minecraft, x, y, width, Component.translatable(translationKey).getString(),
-            action, pluginIndex, entryIndex, mouseX, mouseY);
-    }
-
-    private int buttonText(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String text,
-                           Action action, int pluginIndex, int entryIndex, int mouseX, int mouseY) {
-        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        String label = minecraft.font.width(text) > width - 2 ? minecraft.font.plainSubstrByWidth(text, width - 2) : text;
-        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2, TerminalPluginPanel.COLOR_TEXT, false);
-        this.regions.add(new Region(x, y, width, 12, action, pluginIndex, entryIndex));
-        return x + width + 2;
-    }
-
-    // ---------- 精妙背包风格的设置控件：按钮上直接显示当前值 ----------
-
-    private static String tr(String key, Object... args) {
-        return Component.translatable(key, args).getString();
-    }
-
-    private void regionWithTip(Region region, String tipKey) {
-        this.regions.add(region);
-        if (tipKey != null) {
-            this.addTip(region, TerminalPluginPanel.tr(tipKey));
-        }
-    }
-
-    private void addTip(Region region, String text) {
-        this.tipRegions.add(region);
-        this.tipTexts.add(text);
-    }
-
-    private void drawButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String text,
-                            Action action, int pluginIndex, int entryIndex, int mouseX, int mouseY, String tipKey) {
-        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        String label = minecraft.font.width(text) > width - 2 ? minecraft.font.plainSubstrByWidth(text, width - 2) : text;
-        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2,
-            TerminalPluginPanel.COLOR_TEXT, false);
-        this.regionWithTip(new Region(x, y, width, 12, action, pluginIndex, entryIndex), tipKey);
-    }
-
-    private void settingButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String text,
-                               Action action, int pluginIndex, int mouseX, int mouseY, String tipKey) {
-        boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        String label = minecraft.font.width(text) > width - 4 ? minecraft.font.plainSubstrByWidth(text, width - 4) : text;
-        graphics.drawString(minecraft.font, label, x + 3, y + 2, TerminalPluginPanel.COLOR_TEXT, false);
-        this.regionWithTip(new Region(x, y, width, 12, action, pluginIndex, -1), tipKey);
+            x + 4, y - 11, TerminalPluginPanel.COLOR_DIM, false);
     }
 
     private void renderTips(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
@@ -537,82 +555,5 @@ public class TerminalPluginPanel {
                 return;
             }
         }
-    }
-
-    // 主档位按钮的文字：直接显示当前值（对齐精妙背包的升级设置按钮）
-    private String primaryLabel(ItemStack plugin) {
-        if (!(plugin.getItem() instanceof TerminalPluginItem item)) {
-            return null;
-        }
-        return switch (item.kind()) {
-            case FILTER -> {
-                FilterContent content = plugin.getOrDefault(ModComponents.FILTER_CONTENT, new FilterContent());
-                yield TerminalPluginPanel.tr(content.blackList()
-                    ? "tooltip.anvilcraft_terminal_plugins.filter.mode.blacklist"
-                    : "tooltip.anvilcraft_terminal_plugins.filter.mode.whitelist");
-            }
-            case MAGNET -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.range",
-                plugin.getOrDefault(AddonDataComponents.MAGNET_SETTINGS, MagnetSettings.DEFAULT).range()
-            );
-            case AUTO_COOKING -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.recipe",
-                TerminalPluginPanel.tr("tooltip.anvilcraft_terminal_plugins.cooking.mode."
-                    + plugin.getOrDefault(AddonDataComponents.COOKING_SETTINGS, AutoCookingSettings.DEFAULT)
-                        .mode().getSerializedName())
-            );
-            case FEEDING -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.threshold",
-                plugin.getOrDefault(AddonDataComponents.FEEDING_SETTINGS, FeedingSettings.DEFAULT).hungerThreshold()
-            );
-            case ALCHEMY -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.nearby",
-                TerminalPluginPanel.tr("tooltip.anvilcraft_terminal_plugins.alchemy.nearby."
-                    + plugin.getOrDefault(AddonDataComponents.ALCHEMY_SETTINGS, AlchemySettings.DEFAULT)
-                        .nearby().getSerializedName())
-            );
-        };
-    }
-
-    // 副档位按钮的文字
-    private String secondaryLabel(ItemStack plugin) {
-        if (!(plugin.getItem() instanceof TerminalPluginItem item)) {
-            return null;
-        }
-        String on = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.setting.on");
-        String off = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.setting.off");
-        return switch (item.kind()) {
-            case FILTER -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.components",
-                plugin.getOrDefault(ModComponents.FILTER_CONTENT, new FilterContent()).includeComponents() ? on : off
-            );
-            case MAGNET -> {
-                MagnetSettings settings = plugin.getOrDefault(AddonDataComponents.MAGNET_SETTINGS, MagnetSettings.DEFAULT);
-                String mode;
-                if (settings.magnetEnabled() && settings.pickupEnabled()) {
-                    mode = TerminalPluginPanel.tr("tooltip.anvilcraft_terminal_plugins.magnet.mode.both");
-                } else if (settings.magnetEnabled()) {
-                    mode = TerminalPluginPanel.tr("tooltip.anvilcraft_terminal_plugins.magnet.mode.magnet");
-                } else {
-                    mode = TerminalPluginPanel.tr("tooltip.anvilcraft_terminal_plugins.magnet.mode.pickup");
-                }
-                yield TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.setting.mode", mode);
-            }
-            case AUTO_COOKING -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.fuel",
-                plugin.getOrDefault(AddonDataComponents.COOKING_SETTINGS, AutoCookingSettings.DEFAULT).consumeFuel()
-                    ? on : off
-            );
-            case FEEDING -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.harmful",
-                plugin.getOrDefault(AddonDataComponents.FEEDING_SETTINGS, FeedingSettings.DEFAULT).allowHarmful()
-                    ? on : off
-            );
-            case ALCHEMY -> TerminalPluginPanel.tr(
-                "screen.anvilcraft_terminal_plugins.setting.amplifier",
-                plugin.getOrDefault(AddonDataComponents.ALCHEMY_SETTINGS, AlchemySettings.DEFAULT).matchAmplifier()
-                    ? on : off
-            );
-        };
     }
 }
