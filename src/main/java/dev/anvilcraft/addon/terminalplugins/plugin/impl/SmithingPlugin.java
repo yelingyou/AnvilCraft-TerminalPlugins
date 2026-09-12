@@ -34,8 +34,10 @@ import java.util.function.Predicate;
  * <p><b>消耗型插件的过滤表语义</b>：留空时什么都不做，必须显式把允许当「基底」的物品写进过滤表，
  * 避免把存储里的下界合金锭、模板这类贵重物品悄悄消耗掉。</p>
  *
- * <p><b>回滚</b>：三件材料是分三次从存储取出的，任何一步失败都会把已取出的部分原样插回，
- * 只有三件都到手、配方重新校验通过、成品非空时才真正消耗。</p>
+ * <p><b>皇家锻造台语义</b>：仿照本体的{@code anvilcraft:royal_smithing_table} —— **锻造模板只当作钥匙、不消耗**，
+ * 真正消耗的是基底与附加物；只要存储里有对应模板就能一直锻造。</p>
+ *
+ * <p><b>回滚</b>：基底与附加物是分两次从存储取出的，任何一步失败都会把已取出的部分原样插回。</p>
  */
 public class SmithingPlugin implements TerminalPlugin {
     @Override
@@ -109,12 +111,8 @@ public class SmithingPlugin implements TerminalPlugin {
         ItemStack takenTemplate = ItemStack.EMPTY;
         ItemStack takenAddition = ItemStack.EMPTY;
         if (!template.isEmpty()) {
-            takenTemplate = context.storage().extractFirst(
-                stack -> ItemStack.isSameItemSameComponents(stack, template), 1);
-            if (takenTemplate.isEmpty()) {
-                SmithingPlugin.rollback(context, takenBase);
-                return false;
-            }
+            // 皇家锻造台的语义：模板只是「钥匙」，不消耗，所以这里只取一个副本来校验配方
+            takenTemplate = template.copyWithCount(1);
         }
         if (!addition.isEmpty()) {
             takenAddition = context.storage().extractFirst(

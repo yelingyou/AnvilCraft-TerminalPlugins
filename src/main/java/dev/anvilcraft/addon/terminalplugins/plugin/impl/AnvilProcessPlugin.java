@@ -118,10 +118,8 @@ public class AnvilProcessPlugin implements TerminalPlugin {
     /** 尝试用存储里的物品完成一次该配方；不满足条件就原样返回 false，不动存储。 */
     private static boolean craftOnce(PluginContext context, ServerLevel level,
                                      AbstractProcessRecipe<?> recipe, FilterContent filter) {
-        // 需要方块 / 炼药锅流体的配方跳过：存储物品的语境下没法诚实还原
-        if (!recipe.getInputBlocks().isEmpty()) {
-            return false;
-        }
+        // 需要炼药锅流体的配方跳过：存储物品的语境下没法诚实还原
+        // （需要特定方块的配方不再跳过 —— 本插件本来就是这些加工方式的「快捷化」）
         if (recipe.getHasCauldron() != null
             && (recipe.getHasCauldron().hasFluid() || recipe.getHasCauldron().ignited())) {
             return false;
@@ -131,9 +129,11 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         if (inputs.isEmpty() || results.isEmpty()) {
             return false;
         }
-        // 过滤表留空 = 什么都不做（消耗型插件的统一语义）
+        // 过滤表可选：留空 = 不限制（点了按钮才加工，玩家是主动触发的）
         for (ItemIngredientPredicate input : inputs) {
-            if (context.storage().count(stack -> input.test(stack) && filter.filter(stack)) < input.count()) {
+            if (context.storage().count(
+                stack -> input.test(stack) && AnvilProcessPlugin.allowed(filter, stack)
+            ) < input.count()) {
                 return false;
             }
         }
@@ -142,7 +142,7 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         List<ItemStack> taken = new ArrayList<>();
         for (ItemIngredientPredicate input : inputs) {
             ItemStack stack = context.storage().extractFirst(
-                candidate -> input.test(candidate) && filter.filter(candidate),
+                candidate -> input.test(candidate) && AnvilProcessPlugin.allowed(filter, candidate),
                 input.count()
             );
             if (stack.isEmpty() || stack.getCount() < input.count()) {
@@ -170,6 +170,14 @@ public class AnvilProcessPlugin implements TerminalPlugin {
             context.insertIntoStorage(stack);
         }
         return true;
+    }
+
+    /** 过滤表留空（或全是空格子）= 不限制；填了内容就只允许表里的物品。 */
+    private static boolean allowed(FilterContent filter, ItemStack stack) {
+        if (filter == null || filter.list().stream().allMatch(ItemStack::isEmpty)) {
+            return true;
+        }
+        return filter.filter(stack);
     }
 
     private static void rollback(PluginContext context, List<ItemStack> taken) {
