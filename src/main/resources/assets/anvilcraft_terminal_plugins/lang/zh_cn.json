@@ -73,5 +73,21 @@
   "tooltip.anvilcraft_terminal_plugins.plugin.panel_hint": "在终端界面按 K 打开插件调节面板",
   "key.categories.anvilcraft_terminal_plugins": "铁砧工艺：终端插件",
   "key.anvilcraft_terminal_plugins.open_panel": "打开插件调节面板",
-  "screen.anvilcraft_terminal_plugins.panel.drag_hint": "按住「插件」按钮可拖动面板"
+  "screen.anvilcraft_terminal_plugins.panel.drag_hint": "按住「插件」按钮可拖动面板",
+  "screen.anvilcraft_terminal_plugins.setting.on": "开",
+  "screen.anvilcraft_terminal_plugins.setting.off": "关",
+  "screen.anvilcraft_terminal_plugins.setting.range": "半径 %s",
+  "screen.anvilcraft_terminal_plugins.setting.recipe": "配方 %s",
+  "screen.anvilcraft_terminal_plugins.setting.fuel": "燃料 %s",
+  "screen.anvilcraft_terminal_plugins.setting.threshold": "阈值 %s",
+  "screen.anvilcraft_terminal_plugins.setting.harmful": "负面食物 %s",
+  "screen.anvilcraft_terminal_plugins.setting.mode": "模式 %s",
+  "screen.anvilcraft_terminal_plugins.setting.components": "比对组件 %s",
+  "screen.anvilcraft_terminal_plugins.setting.nearby": "作用范围 %s",
+  "screen.anvilcraft_terminal_plugins.setting.amplifier": "等级匹配 %s",
+  "screen.anvilcraft_terminal_plugins.panel.cycle_tip": "点击循环切换该设置",
+  "tooltip.anvilcraft_terminal_plugins.magnet.mode.both": "磁吸 + 拾取",
+  "screen.anvilcraft_terminal_plugins.panel.filter_tip": "在这里放药水：左键放入光标上的物品，右键清空",
+  "screen.anvilcraft_terminal_plugins.panel.trigger_tip": "点击循环切换触发条件",
+  "screen.anvilcraft_terminal_plugins.panel.radius_tip": "左键增大半径 / 右键减小半径"
 }
