@@ -21,9 +21,10 @@
 
 用铁砧工艺的方式把插件"装"到终端上：
 
-1. 合成 **终端插件安装台**（8 铁锭 + 1 工作台）；
-2. 右键打开界面：**左边 1 格放终端，右边 3×3 放插件**；
-3. 放入插件后会自动安装到终端上：**终端右侧一排绿色槽位会实时显示已安装的插件**（共 6 格）；
+1. 通过**冲压**做出 **插件安装台**（4 铁块 + 1 铁砧，见「四、本模组物品的铁砧工艺化配方」）；
+2. 右键打开界面：**左边 1 格放终端，下面 3×3 是暂存槽，右边是操作按钮**；
+3. 暂存槽**只是暂存**：放进去不会自动安装，点 **「安装全部」** 才装到终端上；
+   **终端右侧一排绿色槽位实时显示已安装的插件**（最多 6 个图标）；
 4. 点 **「全部拆卸」** 把终端上已装的插件全部拆回暂存槽；点 **「调节插件」** 直接打开插件调节面板；
 5. 把终端拿走即可携带插件，插件的配置保存在插件物品自身（拆下时配置一起带走）。
 
@@ -35,12 +36,14 @@
 - 面板是叠加层，**不会关闭你已经打开的终端界面**；
 - **位置默认贴屏幕左侧**（JEI 的素材列表默认在右侧，避免重叠）；**按住「≡」按钮可以把整个面板拖到任意位置**，
   拖动后的位置会记在 `config/anvilcraft_terminal_plugins_panel.txt`，下次进游戏仍然生效；
-- **两级界面**（对齐精妙背包的升级标签）：第一级是插件列表，点「设置」进入该插件的**设置子页**（左上角「<」返回）；
+- **面板分三页**：第一级是插件列表，行上有 **「设置」**（配置项）和 **「执行」**（会执行配方的插件才有）两个入口，进入后左上角「<」返回；
+  设置与执行**分开放**：加工方式 / 批量 / 输入槽 / 输出槽 / 「开始加工」都在执行页，设置页只放配置；
 - 交互方式**对齐精妙背包的升级设置**：每个设置就是一个按钮，**按钮上直接写着当前值**（如「半径 5」「配方 熔炼」「阈值 6」「模式 磁吸 + 拾取」），
   点一下循环切换，鼠标悬停会显示说明 tooltip；
 - 面板里可以：
   - 查看终端上已安装的插件列表（图标 + 名称 + 开关状态；最多显示 5 个，更多会显示「+N」）；
   - **设置按钮**：直接显示并切换该插件的两个主设置（不同插件的含义见下表）；
+  - **执行页**（锻造 / 充能 / 压缩 / 铁砧加工）：输入槽左键放入光标物品、右键清空；输出槽只读，显示上次产物；
   - **↑ / ↓**：调整插件顺序；
   - **启用 / 停用**：单独关掉某个插件而不拆下它；
   - **拆下**：把插件退回玩家背包；
@@ -59,9 +62,11 @@
 | 工具切换 | 耐久阈值 5% / 10% / 25% / 50% | 作用槽位：仅主手 / 整个快捷栏 |
 | 生物捕捉 | 搜索半径 4 / 8 / 12 / 16 | 敌对 · 中立生物 开 / 关 |
 | 经验泵 | 工作模式：关闭 / 存入 / 取出 |（子页里还有两级等级与每周期宝石数 −/+）|
-| 锻造 | 每周期锻造次数 1 / 2 / 4 / 8 |（子页里是 18 格基底过滤表）|
-| 充能 | 申请功率：4 / 16 / 64 / 256 kW |（子页里还有充能配方开关、FE 充电开关与进度）|
-| 铁砧加工 | 加工方式：冲压 / 粉碎 / 压缩 / 分解 / 过筛 / 超加热 / 时移 / 中子辐照 |（子页里还有批量与「开始加工」按钮）|
+| 锻造 | 设置页只有过滤表 | 批次 / 输入输出槽 / 「开始锻造」都在**执行页** |
+| 销毁 | 保留组数 0 / 1 / 2 / 4 / 8 / 16 / 64 | —— |
+| 压缩 | 每周期处理组数 1 / 2 / 4 / 8 / 16 | —— |
+| 充能 | 申请功率：4 / 16 / 64 / 256 kW | 是否执行充能配方 / 是否给 FE 物品充电（进度在**执行页**）|
+| 铁砧加工 | 设置页只有过滤表 | 加工方式 / 批量 / 「开始加工」都在**执行页** |
 
 ### 1.2 手持快速配置
 
@@ -82,7 +87,7 @@
 | 铁砧加工 | 加工方式：冲压 → 粉碎 → 压缩 → 分解 → 过筛 → 超加热 → 时移 → 中子辐照 | 本次加工次数 1 → 8 → 64 |
 | 生物捕捉 | 搜索半径 4 → 8 → 12 → 16 | 是否连敌对 / 中立生物一起抓 |
 | 经验泵 | 模式 关闭 → 存入 → 取出 | 每周期宝石数 1 → 2 → 4 → 8 |
-| 锻造 | 每周期锻造次数 1 → 2 → 4 → 8 | —— |
+| 锻造 | 每周期锻造次数 1 → 2 → 4 → 8 → 16 | —— |
 
 ### 2. 插件清单（14 个）
 
@@ -97,14 +102,16 @@
 | **工具切换插件** | 手持工具快坏掉时自动换成存储里更好的同种工具 | 每 10 tick 检查一次；剩余耐久低于阈值（5/10/25/50%）就从存储取一把**剩余耐久严格更多**的同种工具换到同一个槽位，旧工具默认放回存储（可当铁砧修复材料）；过滤表留空 = 所有可损坏物品都生效 |
 | **生物捕捉插件** | 把存储里的**空树脂块**变成「装着生物的树脂块」 | 每 20 tick 一次；搜索半径内最近的生物，规则**完全交给本体**（`HasMobBlockItem#canMobBeSaved / saveMobInItem`），所以「体积太大抓不了」「敌对 / 中立要虚弱」与手动捕捉一致；默认只抓被动生物；抓成功才消耗树脂块，失败原样放回 |
 | **经验泵插件** | 玩家经验 ↔ 存储里的**经验宝石**（`anvilcraft:exp_gem`，1 颗 = 50 点经验） | **存入**：等级高于阈值（默认 30）时扣 50 点经验、把一颗宝石放进存储；**取出**：等级低于阈值（默认 5）时取一颗宝石换回经验。如果宝石被过滤插件拦下，扣掉的经验会原样退回 |
-| **锻造插件** | 用存储里的**模板 / 基底 / 附加物**自动完成锻造台配方（下界合金升级、盔甲纹饰） | 每 40 tick 一次；走原版 `RecipeType.SMITHING`，三件材料分别取出，任何一步失败都原样插回；过滤表列出**允许当基底的物品**，留空则什么都不做 |
+| **锻造插件** | 用存储里的**工具 / 金属 / 模板**完成锻造台配方（下界合金升级、盔甲纹饰） | 语义对齐本体**皇家锻造台**：**模板不消耗**，只消耗基底与附加物；执行页三个槽分别指定工具 / 金属 / 模板（留空则自动从存储里找），产物写进输出槽；过滤表列出**允许当基底的物品**，留空则什么都不做 |
 | **销毁插件** | 存储里匹配过滤的物品只保留指定组数，多余部分销毁（对应精妙背包的虚空升级） | 每 40 tick 扫描一次；保留组数 0/1/2/4/8/16/64 |
 | **压缩插件** | 把存储里 9 个同类物品自动压成 1 个（铁块、钻石块这类） | 用原版 3×3 合成配方查询，只处理过滤表里的物品；每周期最多 1/2/4/8/16 组 |
 | **充能插件** | 接入铁砧工艺的**电网**，做两件事：跑本体的**充能配方**、给身上的 FE 物品充电 | 用玩家自己的「动态用电器」组件向电网申请功率（与本体飘升机背包同款 API），过载时自动不工作；KW→FE 直接读本体配置 `powerConverterEfficiency` / `powerConverterCountdown`；充能配方进度存在插件物品里，拆下来也不会丢 |
-| **铁砧加工插件** | 把本体的**铁砧加工**（冲压 / 粉碎 / 压缩 / 分解 / 过筛 / 超加热 / 时移 / 中子辐照）搬进界面里**手动批量**执行 | **只在按下「开始加工」时执行**（不做任何自动轮询）；配方判定与产出完全走本体的 `AbstractProcessRecipe`，概率产出照常掷；需要方块或炼药锅流水的配方会被跳过；过滤表列出允许被加工的输入，留空则什么都不做 |
+| **铁砧加工插件** | 把本体的**铁砧加工**（冲压 / 粉碎 / 压缩 / 分解 / 过筛 / 超加热 / 时移 / 中子辐照）搬进界面里**手动批量**执行 | **只在按下「开始加工」时执行**（不做任何自动轮询）；配方判定与产出完全走本体的 `AbstractProcessRecipe`，概率产出照常掷；只跳过需要炼药锅流水的配方；过滤表**可选**（留空 = 不限制，填了才筛），输入槽可以指定「只加工这一种」 |
 
 > **过滤表语义**：*消耗 / 破坏型*插件（销毁、压缩、锻造）留空时**什么都不做**（必须显式列出允许处理的物品，避免误删误压）；
-> *增益型*插件（流体接口、工具切换）留空时**对全部目标生效**；生物捕捉与经验泵不使用过滤表。
+> *增益型*插件（流体接口、工具切换）留空时**对全部目标生效**；
+> **铁砧加工是手动触发的**，所以它的过滤表是**可选**的——留空表示不限制，填了才按表筛。
+> 生物捕捉与经验泵不使用过滤表。
 
 所有插件都作用于**终端当前连接的存储**（本地终端=32 格内最近的大型板条箱；潜影终端=身上的潜影集装箱；超维终端=绑定的全局存储）。
 
@@ -126,17 +133,30 @@
 
 ### 4. 本模组物品的铁砧工艺化配方
 
-除了工作台配方，每个物品都额外有一条**贴合铁砧工艺**的路线（数据包文件在 `data/anvilcraft_terminal_plugins/recipe/` 下）：
+**所有物品都只有铁砧工艺路线**（普通工作台配方已经在 1.6.1 里全部删除），数据包文件在 `data/anvilcraft_terminal_plugins/recipe/` 下。
+**每条配方的材料都不一样**（早期版本 13 条冲压配方共用「3 铁锭 + 1 红石」，会互相冲突，已重做）：
 
-| 物品 | 铁砧工艺路线 |
-|---|---|
-| 各插件 | **冲压**（铁砧落在冲压平台上）：3 铁锭 + 1 红石 |
-| 插件安装台 | **冲压**：4 铁块 + 1 铁砧 |
-| 充能插件 | **充电器的充能配方**：把一个过滤插件充 16 kW × 200 tick 变成充能插件（正好演示充能插件自己的功能） |
-| 铁砧加工插件 | **时移**：1 个铁砧 |
+| 物品 | 配方 | 材料 |
+|---|---|---|
+| 过滤插件 | 冲压 | 电路板 + 2 铁锭 |
+| 磁吸 / 拾取插件 | 冲压 | 电路板 + 2 磁铁锭 |
+| 自动熔炼 · 烹饪插件 | 冲压 | 电路板 + 加热器 |
+| 自动喂食插件 | 冲压 | 电路板 + 2 金胡萝卜 |
+| 炼金插件 | 冲压 | 电路板 + 酿造台 |
+| 销毁插件 | 冲压 | 电路板 + 虚空物质 |
+| 压缩插件 | 冲压 | 电路板 + 2 活塞 |
+| 流体接口插件 | 冲压 | 电路板 + 2 玻璃 |
+| 工具切换插件 | 冲压 | 电路板 + 钻石镐 |
+| 生物捕捉插件 | 冲压 | 电路板 + 树脂块 |
+| 经验泵插件 | 冲压 | 电路板 + 2 经验宝石 |
+| 锻造插件 | 冲压 | 电路板 + 皇家钢锭 |
+| 插件安装台 | 冲压 | 4 铁块 + 1 铁砧 |
+| 铁砧加工插件 | **时移** | 1 个铁砧 |
+| 充能插件 | **充电器的充能配方** | 1 个过滤插件，充 16 kW × 200 tick（顺便演示充能插件自己的功能） |
 
 这些配方都带 `neoforge:conditions` 条件 `anvilcraft_terminal_plugins:recipes_enabled`，
-也就是配置文件 `anvilcraft_terminal_plugins-common.toml` 里的 `enableAnvilCraftRecipes`：关掉它，这些配方在数据包加载时就不会被载入，只保留工作台配方。
+也就是配置文件 `anvilcraft_terminal_plugins-common.toml` 里的 `enableAnvilCraftRecipes`：关掉它，这些配方在数据包加载时就不会被载入。
+**注意**：工作台配方已经没有了，所以关掉之后这些物品会**没有任何配方**（这个开关主要用于整合包自行改写配方）。
 
 ---
 
@@ -183,7 +203,7 @@ plugin-run 终端自动喂食插件 tick=120
 2. 自动烹饪使用**原版烹饪配方**（熔炉/高炉/烟熏/营火）。
    铁砧工艺的"超级加热 / 烹饪"是 InWorld（世界里多方块）配方，不适合在存储内直接套用。
 3. 炼金插件按条件使用**存储里现成的药水**（与精妙背包一致）；喷溅药水是就地投掷生效，不做弹道瞄准。
-4. 终端界面本身没有插件页签（那需要 mixin `StorageScreen`），插件配置目前通过物品组件/JSON 调整。
+4. 终端界面本身没有插件页签（那需要 mixin `StorageScreen`），插件配置通过本附属的**叠加面板**（按 K 或点终端界面里的「插件」按钮）调整。
 
 ---
 
@@ -213,15 +233,16 @@ gradlew.bat runClient         # 起客户端
 ```
 src/main/java/dev/anvilcraft/addon/terminalplugins/
 ├── plugin/            插件 API：TerminalPlugin / PluginContext / TerminalPluginRegistry / TerminalStorage(Resolver)
-│   └── impl/          五个插件的实现
+│   └── impl/          各插件的行为实现（过滤 / 磁吸 / 烹饪 / 喂食 / 炼金 / 销毁 / 压缩 / 流体 / 工具切换 / 生物捕捉 / 经验泵 / 锻造 / 充能 / 铁砧加工）
 ├── component/         数据组件（已安装插件列表 + 各插件配置）
 ├── item/              插件物品
 ├── block/(entity)/    插件安装台方块与方块实体
 ├── inventory/         安装台 Menu
-├── client/            插件调节面板（叠加在终端界面上）、按键、客户端事件
+├── client/            插件面板（列表 / 设置 / 执行三页，叠加在终端界面上）、按键、客户端事件
+│   └── gui/           各插件的设置视图 PluginViews 与执行视图 PluginExecViews
 ├── client/screen/     安装台界面
 ├── event/             服务端 tick 派发
-├── network/           拆卸插件的网络包
+├── network/           网络包（插件动作 / 安装台操作 / 失败反馈）
 └── init/              注册入口（物品/方块/方块实体/菜单/数据组件/网络/创造标签页）
 ```
 
@@ -230,9 +251,10 @@ src/main/java/dev/anvilcraft/addon/terminalplugins/
 ## 五、Roadmap
 
 - [x] 插件调节面板（终端界面内打开，可开关 / 排序 / 改配置 / 拆下）
-- [ ] 过滤表的图形化编辑（当前过滤表仍借助铁砧工艺自身的过滤组件）
-- [x] 销毁(Void)、压缩、流体接口、工具切换、生物捕捉、经验泵、锻造（合成扩展）、充能、铁砧加工
-- [ ] 后续可考虑：插件级面板搜索 / 排序、更多本体的机器接口（激光、充能等）
+- [x] 过滤表的图形化编辑（设置页里的 18 格过滤表，左键放入 / 右键清空）
+- [x] 销毁(Void)、压缩、流体接口、工具切换、生物捕捉、经验泵、锻造、充能、铁砧加工
+- [x] 面板分「设置 / 执行」两页，会执行配方的插件带输入槽 / 输出槽
+- [ ] 后续可考虑：插件级面板搜索 / 排序、输出槽显示配方预览（当前显示上次产出）、更多本体的机器接口
 - [ ] 可选的 mixin 方案：让过滤插件约束"玩家在终端界面手动存入"的物品
 
 ---
@@ -300,12 +322,12 @@ inspired by the upgrade model of Sophisticated Backpacks.
 
 **What it adds**
 
-- **Terminal Plugin Station** — put a terminal on the left and plugins on the right; plugins are installed automatically,
-  the installed list is shown live, and one button takes them all back out again.
+- **Terminal Plugin Station** — put a terminal in the slot on the left, stage plugins in the 3x3 slots, then press
+  "Install all"; the installed plugins are shown as live icons and one button takes them all back out again.
 - **In-terminal plugin panel** — open it from the "Plugins" button in the terminal screen (or press **K**).
   It is drawn as an overlay, so your open terminal GUI is not closed and no mixins are required.
-  From there you can inspect, enable/disable, reorder, reconfigure or remove installed plugins.
-- **Five plugins (first release)**
+  Each plugin has a **settings** page and, for the ones that run recipes, a **run** page with input/output slots.
+- **14 plugins**
   - **Filter** — decides which items may enter the bound storage (reuses AnvilCraft's own filter component:
     whitelist/blacklist, component matching, `#tag` filters).
   - **Magnet / Pickup** — pulls nearby drops in and stores them directly (configurable radius and mode).
@@ -315,6 +337,14 @@ inspired by the upgrade model of Sophisticated Backpacks.
   - **Alchemy** — uses stored potions automatically when a condition is met (underwater, on fire, falling,
     sprinting, hurt below X%, having a debuff, ...), matching the semantics of the Sophisticated Backpacks
     alchemy upgrade: drink normal potions, throw splash/lingering ones, and put the empty bottles back.
+  - **Void / Compacting / Fluid / Tool Swap / Mob Catcher / XP Pump / Smithing / Charging / Anvil Process** —
+    destroy surplus items, run vanilla 3x3 recipes, move fluids through buckets and bottles, swap a worn tool for
+    a better one, catch mobs into resin blocks, convert experience to and from exp gems, forge like the royal
+    forging table (the template is kept), draw power from an AnvilCraft **grid** to run charging recipes and
+    charge FE items, and run the mod's anvil processing methods by hand from the panel.
+
+Item recipes are **AnvilCraft-style only** (stamping / time warp / the charger's charging recipe); every recipe uses
+different materials, and they can be switched off with `enableAnvilCraftRecipes` in the config.
 
 All plugins act on the storage the terminal is currently connected to (nearest large crate within 32 blocks,
 the shulker container you carry, or the hyperdimension storage the terminal is bound to).
