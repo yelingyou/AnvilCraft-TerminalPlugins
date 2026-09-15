@@ -13,6 +13,7 @@
 - 依赖：AnvilCraft `1.6.0+`（Cjsah Maven）、AnvilLib（随 AnvilCraft 一起提供）
 - 下载：**[Releases](https://github.com/yelingyou/AnvilCraft-TerminalPlugins/releases/latest)** —— 直接下 `anvilcraft_terminal_plugins-neoforge-1.21.1-x.y.z.jar` 放进 `mods/` 即可（另附 sources jar）
 - 开源：欢迎 Issue / PR
+- 详细说明：**[百科式说明 docs/WIKI.md](docs/WIKI.md)**（物品一览 / 机制 / 配方 / 配置 / 常见问题 / 版本历史）
 
 ---
 
