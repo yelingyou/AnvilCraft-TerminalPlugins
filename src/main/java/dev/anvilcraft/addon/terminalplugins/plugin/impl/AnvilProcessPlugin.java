@@ -8,6 +8,7 @@
  */
 package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 
+import dev.anvilcraft.addon.terminalplugins.AnvilCraftTerminalPlugins;
 import dev.anvilcraft.addon.terminalplugins.component.AnvilProcessSettings;
 import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
@@ -128,19 +129,29 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         List<ItemIngredientPredicate> inputs = recipe.getInputItems();
         List<ChanceItemStack> results = recipe.getResultItems();
         if (inputs.isEmpty() || results.isEmpty()) {
+            AnvilProcessPlugin.debug(
+                "no-ingredient-or-result inputs={} results={} type={}",
+                inputs.size(), results.size(), recipe.getType()
+            );
             return false;
         }
         // 输入槽（PLUGIN_SAMPLE）：指定了就只做能吃下这个物品的配方
         PluginSample sample = context.pluginStack().getOrDefault(
             AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
-        if (sample.hasSample() && inputs.stream().noneMatch(input -> input.test(sample.sample()))) {
+        // 用 testIgnoreCount 而不是 test：test() 会连带比较「物品数量」，
+        // 而存储里的展示栈数量恒为 1（真实数量另外统计），
+        // 直接调用 test() 会把任何需要多个原料的配方误判成不满足。
+        if (sample.hasSample() && inputs.stream().noneMatch(input -> input.testIgnoreCount(sample.sample()))) {
+            AnvilProcessPlugin.debug("sample-mismatch {}", recipe.getType());
             return false;
         }
         // 过滤表可选：留空 = 不限制（点了按钮才加工，玩家是主动触发的）
         for (ItemIngredientPredicate input : inputs) {
-            if (context.storage().count(
-                stack -> input.test(stack) && AnvilProcessPlugin.allowed(filter, stack)
-            ) < input.count()) {
+            long have = context.storage().count(
+                stack -> input.testIgnoreCount(stack) && AnvilProcessPlugin.allowed(filter, stack)
+            );
+            if (have < input.count()) {
+                AnvilProcessPlugin.debug("missing-input need={} have={} type={}", input.count(), have, recipe.getType());
                 return false;
             }
         }
@@ -149,7 +160,7 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         List<ItemStack> taken = new ArrayList<>();
         for (ItemIngredientPredicate input : inputs) {
             ItemStack stack = context.storage().extractFirst(
-                candidate -> input.test(candidate) && AnvilProcessPlugin.allowed(filter, candidate),
+                candidate -> input.testIgnoreCount(candidate) && AnvilProcessPlugin.allowed(filter, candidate),
                 input.count()
             );
             if (stack.isEmpty() || stack.getCount() < input.count()) {
@@ -170,9 +181,11 @@ public class AnvilProcessPlugin implements TerminalPlugin {
             }
         }
         if (produced.isEmpty()) {
+            AnvilProcessPlugin.debug("empty-result type={}", recipe.getType());
             AnvilProcessPlugin.rollback(context, taken);
             return false;
         }
+        AnvilProcessPlugin.debug("crafted {} -> {} 件产物 type={}", taken.size(), produced.size(), recipe.getType());
         for (ItemStack stack : produced) {
             context.deliver(stack);
         }
@@ -183,6 +196,13 @@ public class AnvilProcessPlugin implements TerminalPlugin {
                 .withOutput(produced.get(0).copy())
         );
         return true;
+    }
+
+    /** 仅在开启 debugLogging 时输出，用于定位「点了开始加工但什么都没发生」。 */
+    private static void debug(String pattern, Object... args) {
+        if (AnvilCraftTerminalPlugins.CONFIG.debugLogging) {
+            AnvilCraftTerminalPlugins.LOGGER.info("anvil-process " + pattern, args);
+        }
     }
 
     /** 过滤表留空（或全是空格子）= 不限制；填了内容就只允许表里的物品。 */
