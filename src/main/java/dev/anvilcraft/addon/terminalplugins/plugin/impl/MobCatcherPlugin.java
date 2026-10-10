@@ -80,11 +80,11 @@ public class MobCatcherPlugin implements TerminalPlugin {
             if (captured.isEmpty() || !HasMobBlockItem.hasMob(captured)) {
                 continue;
             }
-            context.insertIntoStorage(captured);
+            context.deliver(captured);
             return;
         }
         // 没有抓成功，把树脂块原样放回存储
-        context.insertIntoStorage(resin);
+        context.deliver(resin);
     }
 
     /** 是否纳入候选：默认只碰被动生物，开启后连敌对 / 中立一起试（能否成功仍由本体判定）。 */

@@ -109,7 +109,11 @@ public class PluginStationBlockEntity extends BlockEntity {
                     // 达到上限：留在暂存槽，等玩家拆下别的插件
                     continue;
                 }
-                this.inventory.setStackInSlot(slot, ItemStack.EMPTY);
+                // 只装 1 枚；旧版本堆叠过的插件会把剩余数量留在暂存槽里，不会凭空消失
+                this.inventory.setStackInSlot(
+                    slot,
+                    plugin.getCount() > 1 ? plugin.copyWithCount(plugin.getCount() - 1) : ItemStack.EMPTY
+                );
                 changed = true;
             }
             if (changed) {

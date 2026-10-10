@@ -69,7 +69,7 @@ public class FeedingPlugin implements TerminalPlugin {
         }
         FoodProperties properties = food.get(DataComponents.FOOD);
         if (properties == null) {
-            context.insertIntoStorage(food);
+            context.deliver(food);
             return;
         }
         foodData.eat(properties);
@@ -78,7 +78,7 @@ public class FeedingPlugin implements TerminalPlugin {
                 player.addEffect(new MobEffectInstance(possible.effect()));
             }
         }
-        properties.usingConvertsTo().ifPresent(container -> context.insertIntoStorage(container.copy()));
+        properties.usingConvertsTo().ifPresent(container -> context.deliver(container.copy()));
         player.containerMenu.broadcastChanges();
     }
 

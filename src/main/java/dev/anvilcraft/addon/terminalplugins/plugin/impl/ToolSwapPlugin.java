@@ -90,7 +90,7 @@ public class ToolSwapPlugin implements TerminalPlugin {
 
         inventory.setItem(slot, replacement.copyWithCount(1));
         if (settings.returnWorn()) {
-            context.insertIntoStorage(current);
+            context.deliver(current);
         } else if (!inventory.add(current)) {
             player.drop(current, false);
         }

@@ -151,6 +151,7 @@ public record PluginActionPacket(
             PluginStationBlockEntity station = null;
             ItemStack terminal;
             if (packet.station().isPresent()
+                && StationActionPacket.isUsable(player, packet.station().get())
                 && player.serverLevel().getBlockEntity(packet.station().get()) instanceof PluginStationBlockEntity be) {
                 station = be;
                 terminal = be.getTerminal();

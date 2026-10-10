@@ -1,5 +1,6 @@
 package dev.anvilcraft.addon.terminalplugins.client;
 
+import dev.anvilcraft.addon.terminalplugins.client.gui.PanelStyle;
 import dev.anvilcraft.addon.terminalplugins.client.gui.PluginExecViews;
 import dev.anvilcraft.addon.terminalplugins.client.gui.PluginSettingsView;
 import dev.anvilcraft.addon.terminalplugins.client.gui.PluginViews;
@@ -39,14 +40,11 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private static final int LOCAL_BACK = -4;
     private static final int LOCAL_EXECUTE = -5;
 
-    private static final int COLOR_PANEL = 0xF0181820;
-    private static final int COLOR_BORDER = 0xFF6E6E78;
-    private static final int COLOR_SLOT = 0xFF37373B;
-    private static final int COLOR_TEXT = 0xFFE0E0E6;
-    private static final int COLOR_DIM = 0xFF9A9AA4;
-    private static final int COLOR_BUTTON = 0xFF2A2A33;
-    private static final int COLOR_BUTTON_HOVER = 0xFF565666;
-    private static final int COLOR_SELECTED = 0xFF4A4A5C;
+    /** 标题栏高度：列表页与子页一致，内容从 y + 22 开始。 */
+    private static final int HEADER_HEIGHT = 18;
+    /** 内容起始偏移。 */
+    private static final int CONTENT_OFFSET = 22;
+
 
     private record Region(int x, int y, int width, int height, int action, int pluginIndex, int entryIndex) {
         boolean contains(double mouseX, double mouseY) {
@@ -68,6 +66,10 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private boolean executeOpen = false;
     private int selected = 0;
     private Target target;
+
+    /** 本帧的鼠标位置：幽灵槽接口不带鼠标参数，用它在控件内部判断悬停。 */
+    private int hoverMouseX = Integer.MIN_VALUE;
+    private int hoverMouseY = Integer.MIN_VALUE;
 
     private boolean positionLoaded = false;
     private int anchorX = 4;
@@ -173,17 +175,17 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 ? PluginExecViews.of(terminalPlugin.kind())
                 : null;
             int execContent = view == null ? 14 : view.height(plugin);
-            return 18 + execContent + 4 + 12;
+            return TerminalPluginPanel.CONTENT_OFFSET + execContent + 4 + 12;
         }
         if (!this.settingsOpen || plugins.isEmpty()) {
             int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
-            return 18 + Math.max(rows, 1) * 14 + 4 + 15 + 12;
+            return TerminalPluginPanel.CONTENT_OFFSET + Math.max(rows, 1) * 14 + 4 + 15 + 12;
         }
         ItemStack plugin = plugins.get(Math.clamp(this.selected, 0, plugins.size() - 1));
         int content = plugin.getItem() instanceof TerminalPluginItem item
             ? PluginViews.of(item.kind()).height(plugin)
             : 14;
-        return 18 + content + 4 + 12;
+        return TerminalPluginPanel.CONTENT_OFFSET + content + 4 + 12;
     }
 
     public boolean isOverToggleButton(Minecraft minecraft, double mouseX, double mouseY) {
@@ -324,9 +326,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     public void settingButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String label,
                               int pluginIndex, int entryIndex, int action, int mouseX, int mouseY, String tipKey) {
         boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        String text = minecraft.font.width(label) > width - 6 ? minecraft.font.plainSubstrByWidth(label, width - 6) : label;
-        graphics.drawString(minecraft.font, text, x + 3, y + 2, TerminalPluginPanel.COLOR_TEXT, false);
+        PanelStyle.button(graphics, minecraft.font, x, y, width, 12, label, hovered, false, false);
         this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, tipKey);
     }
 
@@ -334,16 +334,16 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     public void smallButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String label,
                             int pluginIndex, int entryIndex, int action, int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2,
-            TerminalPluginPanel.COLOR_TEXT, false);
+        PanelStyle.button(graphics, minecraft.font, x, y, width, 12, label, hovered, false, true);
         this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, null);
     }
 
     @Override
     public void ghostSlot(GuiGraphics graphics, int x, int y, ItemStack shown, int pluginIndex, int entryIndex,
                           int action, String tipKey) {
-        graphics.fill(x, y, x + 16, y + 16, TerminalPluginPanel.COLOR_SLOT);
+        boolean hovered = this.hoverMouseX >= x && this.hoverMouseX < x + 16
+                          && this.hoverMouseY >= y && this.hoverMouseY < y + 16;
+        PanelStyle.slot(graphics, x, y, 16, hovered);
         if (!shown.isEmpty()) {
             graphics.renderItem(shown, x, y);
         }
@@ -425,6 +425,8 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     // ---------- 绘制 ----------
 
     public void render(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {
+        this.hoverMouseX = mouseX;
+        this.hoverMouseY = mouseY;
         this.regions.clear();
         this.regionValues.clear();
         this.tipRegions.clear();
@@ -438,18 +440,21 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
         int x = this.left(minecraft);
         int y = this.panelTop(minecraft);
         int height = this.panelHeight(terminal);
-        graphics.fill(x - 1, y - 1, x + TerminalPluginPanel.PANEL_WIDTH + 1, y + height + 1, TerminalPluginPanel.COLOR_BORDER);
-        graphics.fill(x, y, x + TerminalPluginPanel.PANEL_WIDTH, y + height, TerminalPluginPanel.COLOR_PANEL);
-        graphics.drawString(minecraft.font, "x", x + TerminalPluginPanel.PANEL_WIDTH - 11, y + 5, TerminalPluginPanel.COLOR_DIM, false);
+        PanelStyle.panel(graphics, x - 1, y - 1, TerminalPluginPanel.PANEL_WIDTH + 2, height + 2);
+        PanelStyle.header(graphics, x, y, TerminalPluginPanel.PANEL_WIDTH, TerminalPluginPanel.HEADER_HEIGHT);
+        boolean closeHovered = mouseX >= x + TerminalPluginPanel.PANEL_WIDTH - 14
+                               && mouseX < x + TerminalPluginPanel.PANEL_WIDTH - 2
+                               && mouseY >= y + 3 && mouseY < y + 15;
+        PanelStyle.closeButton(graphics, x + TerminalPluginPanel.PANEL_WIDTH - 13, y + 4, closeHovered);
         this.addRegion(new Region(x + TerminalPluginPanel.PANEL_WIDTH - 14, y + 2, 12, 12, TerminalPluginPanel.LOCAL_CLOSE, -1, -1), 0.0F, null);
 
         if (plugins.isEmpty()) {
             graphics.drawString(minecraft.font,
-                Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 5,
-                TerminalPluginPanel.COLOR_TEXT, false);
+                Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 6, y + 5,
+                PanelStyle.TEXT, true);
             graphics.drawString(minecraft.font,
-                Component.translatable("screen.anvilcraft_terminal_plugins.panel.empty"), x + 4, y + 20,
-                TerminalPluginPanel.COLOR_DIM, false);
+                Component.translatable("screen.anvilcraft_terminal_plugins.panel.empty"), x + 6, y + 24,
+                PanelStyle.TEXT_DIM, false);
             this.renderFooter(graphics, minecraft, x, y + height);
             return;
         }
@@ -460,18 +465,25 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             // 子页：标题栏（返回 + 插件名 + 页名）+ 插件自己的控件；设置与执行分两页
             this.addRegion(new Region(x + 2, y + 2, 12, 12, TerminalPluginPanel.LOCAL_BACK, -1, -1), 0.0F,
                 "screen.anvilcraft_terminal_plugins.panel.back_tip");
-            graphics.drawString(minecraft.font, "<", x + 5, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
-            String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 24
-                ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 24)
+            boolean backHovered = mouseX >= x + 2 && mouseX < x + 14 && mouseY >= y + 2 && mouseY < y + 14;
+            if (backHovered) {
+                graphics.fill(x + 2, y + 2, x + 14, y + 14, PanelStyle.BUTTON_HOVER_TOP);
+            }
+            graphics.drawString(minecraft.font, "<", x + 5, y + 5, PanelStyle.TEXT, false);
+            String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 62
+                ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 62)
                 : selectedPlugin.getHoverName().getString();
             graphics.renderItem(selectedPlugin, x + 16, y + 1);
-            graphics.drawString(minecraft.font, name, x + 34, y + 5, TerminalPluginPanel.COLOR_TEXT, false);
-            if (this.executeOpen) {
-                String pageName = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.panel.execute");
-                graphics.drawString(minecraft.font, pageName,
-                    x + TerminalPluginPanel.PANEL_WIDTH - 12 - minecraft.font.width(pageName), y + 5,
-                    TerminalPluginPanel.COLOR_DIM, false);
-            }
+            graphics.drawString(minecraft.font, name, x + 35, y + 5, PanelStyle.TEXT, true);
+            String pageName = TerminalPluginPanel.tr(this.executeOpen
+                ? "screen.anvilcraft_terminal_plugins.panel.execute"
+                : "screen.anvilcraft_terminal_plugins.panel.settings");
+            int chipWidth = minecraft.font.width(pageName) + 6;
+            PanelStyle.button(
+                graphics, minecraft.font,
+                x + TerminalPluginPanel.PANEL_WIDTH - 5 - chipWidth, y + 3, chipWidth, 12, pageName, false,
+                this.executeOpen, true
+            );
             if (selectedPlugin.getItem() instanceof TerminalPluginItem item) {
                 PluginSettingsView subView = this.executeOpen
                     ? PluginExecViews.of(item.kind())
@@ -479,7 +491,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 if (subView != null) {
                     subView.render(
                         this, graphics, minecraft, selectedPlugin, this.selected,
-                        x + 4, y + 18, TerminalPluginPanel.PANEL_WIDTH - 8, mouseX, mouseY
+                        x + 4, y + TerminalPluginPanel.CONTENT_OFFSET, TerminalPluginPanel.PANEL_WIDTH - 8, mouseX, mouseY
                     );
                 }
             }
@@ -490,41 +502,41 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
 
         // 插件列表页
         graphics.drawString(minecraft.font,
-            Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 4, y + 5,
-            TerminalPluginPanel.COLOR_TEXT, false);
-        int rowY = y + 18;
+            Component.translatable("screen.anvilcraft_terminal_plugins.panel.title"), x + 6, y + 5,
+            PanelStyle.TEXT, true);
+        int rowY = y + TerminalPluginPanel.CONTENT_OFFSET;
         int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
         for (int index = 0; index < rows; index++) {
             ItemStack plugin = plugins.get(index);
             boolean hovered = mouseX >= x + 2 && mouseX < x + TerminalPluginPanel.PANEL_WIDTH - 2
                               && mouseY >= rowY && mouseY < rowY + 14;
-            if (index == this.selected) {
-                graphics.fill(x + 2, rowY, x + TerminalPluginPanel.PANEL_WIDTH - 2, rowY + 14, TerminalPluginPanel.COLOR_SELECTED);
-            } else if (hovered) {
-                graphics.fill(x + 2, rowY, x + TerminalPluginPanel.PANEL_WIDTH - 2, rowY + 14, TerminalPluginPanel.COLOR_BUTTON_HOVER);
-            }
-            graphics.renderItem(plugin, x + 4, rowY - 1);
+            PanelStyle.row(
+                graphics, x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14,
+                index == this.selected, hovered
+            );
+            graphics.renderItem(plugin, x + 7, rowY - 1);
             boolean enabled = TerminalPluginManager.isEnabled(plugin);
+            PanelStyle.dot(graphics, x + 27, rowY + 6, enabled);
             String name = plugin.getHoverName().getString();
-            String label = minecraft.font.width(name) > TerminalPluginPanel.PANEL_WIDTH - 34
-                ? minecraft.font.plainSubstrByWidth(name, TerminalPluginPanel.PANEL_WIDTH - 34)
+            String label = minecraft.font.width(name) > TerminalPluginPanel.PANEL_WIDTH - 54
+                ? minecraft.font.plainSubstrByWidth(name, TerminalPluginPanel.PANEL_WIDTH - 54)
                 : name;
-            graphics.drawString(minecraft.font, label, x + 24, rowY + 3,
-                enabled ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
+            graphics.drawString(minecraft.font, label, x + 33, rowY + 3,
+                enabled ? PanelStyle.TEXT : PanelStyle.TEXT_DISABLED, false);
             if (!enabled) {
                 graphics.drawString(minecraft.font, "off", x + TerminalPluginPanel.PANEL_WIDTH - 20, rowY + 3,
-                    TerminalPluginPanel.COLOR_DIM, false);
+                    PanelStyle.TEXT_DISABLED, false);
             }
             this.addRegion(new Region(x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14, TerminalPluginPanel.LOCAL_SELECT, index, -1), 0.0F, null);
             rowY += 14;
         }
         if (plugins.size() > rows) {
             graphics.drawString(minecraft.font, "+" + (plugins.size() - rows),
-                x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, TerminalPluginPanel.COLOR_DIM, false);
+                x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, PanelStyle.TEXT_DIM, false);
         }
 
-        int buttonY = rowY + 2;
-        int buttonX = x + 3;
+        int buttonY = rowY + 3;
+        int buttonX = x + 4;
         buttonX = this.button(graphics, minecraft, buttonX, buttonY, 22,
             TerminalPluginManager.isEnabled(selectedPlugin)
                 ? "screen.anvilcraft_terminal_plugins.panel.disable"
@@ -540,8 +552,12 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             "screen.anvilcraft_terminal_plugins.panel.settings", TerminalPluginPanel.LOCAL_SETTINGS, this.selected, -1, mouseX, mouseY);
         if (selectedPlugin.getItem() instanceof TerminalPluginItem selectedItem
             && PluginExecViews.has(selectedItem.kind())) {
-            this.button(graphics, minecraft, buttonX, buttonY, 24,
-                "screen.anvilcraft_terminal_plugins.panel.execute", TerminalPluginPanel.LOCAL_EXECUTE, this.selected, -1, mouseX, mouseY);
+            String execLabel = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.panel.execute");
+            boolean execHovered = mouseX >= buttonX && mouseX < buttonX + 26
+                                  && mouseY >= buttonY && mouseY < buttonY + 12;
+            PanelStyle.button(graphics, minecraft.font, buttonX, buttonY, 26, 12, execLabel, execHovered, true, true);
+            this.addRegion(new Region(buttonX, buttonY, 26, 12, TerminalPluginPanel.LOCAL_EXECUTE, this.selected, -1), 0.0F,
+                "screen.anvilcraft_terminal_plugins.panel.execute_tip");
         }
 
         this.renderTips(graphics, minecraft, mouseX, mouseY);
@@ -552,9 +568,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                        int action, int pluginIndex, int entryIndex, int mouseX, int mouseY) {
         String label = TerminalPluginPanel.tr(translationKey);
         boolean hovered = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + 12;
-        graphics.fill(x, y, x + width, y + 12, hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        graphics.drawString(minecraft.font, label, x + (width - minecraft.font.width(label)) / 2, y + 2,
-            TerminalPluginPanel.COLOR_TEXT, false);
+        PanelStyle.button(graphics, minecraft.font, x, y, width, 12, label, hovered, false, true);
         this.addRegion(new Region(x, y, width, 12, action, pluginIndex, entryIndex), 0.0F, null);
         return x + width + 2;
     }
@@ -568,20 +582,23 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
         boolean hasTerminal = !terminal.isEmpty();
         int count = TerminalPluginManager.installed(terminal).size();
         boolean hovered = this.isOverToggleButton(minecraft, mouseX, mouseY) || this.dragging;
-        graphics.fill(x, y, x + TerminalPluginPanel.BUTTON_WIDTH, y + TerminalPluginPanel.BUTTON_HEIGHT,
-            hovered ? TerminalPluginPanel.COLOR_BUTTON_HOVER : TerminalPluginPanel.COLOR_BUTTON);
-        graphics.drawString(minecraft.font, "==", x + 3, y + 3, TerminalPluginPanel.COLOR_DIM, false);
+        PanelStyle.panel(graphics, x, y, TerminalPluginPanel.BUTTON_WIDTH, TerminalPluginPanel.BUTTON_HEIGHT);
+        if (hovered) {
+            graphics.fill(x + 2, y + 2, x + TerminalPluginPanel.BUTTON_WIDTH - 2, y + TerminalPluginPanel.BUTTON_HEIGHT - 2,
+                0x30FFFFFF);
+        }
+        PanelStyle.grip(graphics, x + 4, y + 4, 6, hovered);
         String label = Component.translatable("screen.anvilcraft_terminal_plugins.panel.button").getString() + " " + count;
-        graphics.drawString(minecraft.font, label, x + 16, y + 3,
-            hasTerminal ? TerminalPluginPanel.COLOR_TEXT : TerminalPluginPanel.COLOR_DIM, false);
+        graphics.drawString(minecraft.font, label, x + 14, y + 3,
+            hasTerminal ? PanelStyle.TEXT : PanelStyle.TEXT_DIM, false);
         graphics.drawString(minecraft.font, this.open ? "v" : ">", x + TerminalPluginPanel.BUTTON_WIDTH - 8, y + 3,
-            TerminalPluginPanel.COLOR_DIM, false);
+            PanelStyle.TEXT_DIM, false);
     }
 
     private void renderFooter(GuiGraphics graphics, Minecraft minecraft, int x, int y) {
         graphics.drawString(minecraft.font,
             Component.translatable("screen.anvilcraft_terminal_plugins.panel.drag_hint"),
-            x + 4, y - 11, TerminalPluginPanel.COLOR_DIM, false);
+            x + 5, y - 11, PanelStyle.TEXT_DIM, false);
     }
 
     private void renderTips(GuiGraphics graphics, Minecraft minecraft, int mouseX, int mouseY) {

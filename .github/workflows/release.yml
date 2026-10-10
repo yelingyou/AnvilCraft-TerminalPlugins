@@ -51,7 +51,7 @@ jobs:
           path: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
 
       - name: Publish to maven
-        if: ${{ steps.properties.outputs.upload }}
+        if: ${{ steps.properties.outputs.upload == 'true' }}
         run: ./gradlew publish
         env:
           MAVEN_URL: ${{ secrets.MAVEN_URL }}
@@ -66,15 +66,17 @@ jobs:
             build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
 
       - name: publish neoforge mc mod
-        uses: Kir-Antipov/mc-publish@v3.3
-        if: ${{ steps.properties.outputs.upload }}
-        continue-on-error: true
+        uses: Kir-Antipov/mc-publish@v3.3.1
+        if: ${{ steps.properties.outputs.upload == 'true' }}
+        continue-on-error: false
         with:
           name: "${{ steps.properties.outputs.mod_name }} For NeoForge v${{ steps.version.outputs.version }}"
           version: ${{ steps.version.outputs.version }}
           game-versions: 1.21.1
+          loaders: neoforge
           version-type: ${{ env.VERSION_TYPE }}
           java: 21
+          environment: client | server
           fail-mode: skip
           changelog: ${{ github.event.release.body }}
 
@@ -86,7 +88,7 @@ jobs:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
 
           dependencies: |
-            anvilcraft@1.21.1-1.5.0(required){modrinth:vuISAWPc}{curseforge:986251}
+            anvilcraft(required){curseforge:986251}
 
           files: |
             build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar

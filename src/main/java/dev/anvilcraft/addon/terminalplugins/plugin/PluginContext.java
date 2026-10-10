@@ -42,4 +42,29 @@ public record PluginContext(
         }
         return this.storage.insert(stack);
     }
+
+    /**
+     * 交付一件物品：优先按上面的规则入库；入不进去时**掉在玩家脚下**，绝不直接销毁。
+     *
+     * <p>插件里「产物」「副产品（空瓶、碗）」「失败时退回的原料」都必须走这里 ——
+     * 否则一旦过滤插件拦下该物品（或存储写入失败），这些物品就会凭空消失。</p>
+     *
+     * @return 实际入库的数量（其余部分已掉落在玩家位置）
+     */
+    public int deliver(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return 0;
+        }
+        int stored = this.insertIntoStorage(stack);
+        int leftover = stack.getCount() - stored;
+        if (leftover > 0) {
+            ItemStack rest = stack.copyWithCount(leftover);
+            if (this.player != null) {
+                this.player.drop(rest, false);
+            } else if (this.storageReachable()) {
+                this.storage.insert(rest);
+            }
+        }
+        return stored;
+    }
 }

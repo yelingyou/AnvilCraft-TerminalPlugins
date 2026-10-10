@@ -77,7 +77,7 @@ public class CompactingPlugin implements TerminalPlugin {
             if (taken < CompactingPlugin.REQUIRED) {
                 // 数量在扫描后被改动：把取出的还回去
                 for (int index = 0; index < taken; index++) {
-                    context.insertIntoStorage(candidate.copyWithCount(1));
+                    context.deliver(candidate.copyWithCount(1));
                 }
                 continue;
             }
@@ -85,11 +85,11 @@ public class CompactingPlugin implements TerminalPlugin {
                 CompactingPlugin.input(candidate), level.registryAccess());
             if (result.isEmpty()) {
                 for (int index = 0; index < CompactingPlugin.REQUIRED; index++) {
-                    context.insertIntoStorage(candidate.copyWithCount(1));
+                    context.deliver(candidate.copyWithCount(1));
                 }
                 continue;
             }
-            context.insertIntoStorage(result);
+            context.deliver(result);
             context.pluginStack().set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
             done++;
         }

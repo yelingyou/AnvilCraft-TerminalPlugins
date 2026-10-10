@@ -11,6 +11,7 @@ package dev.anvilcraft.addon.terminalplugins.plugin.impl;
 import dev.anvilcraft.addon.terminalplugins.component.PluginSample;
 import dev.anvilcraft.addon.terminalplugins.component.SmithingSettings;
 import dev.anvilcraft.addon.terminalplugins.init.AddonDataComponents;
+import dev.anvilcraft.addon.terminalplugins.network.PluginActionPacket;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginContext;
 import dev.anvilcraft.addon.terminalplugins.plugin.PluginKind;
 import dev.anvilcraft.addon.terminalplugins.plugin.TerminalPlugin;
@@ -51,6 +52,25 @@ public class SmithingPlugin implements TerminalPlugin {
         return 40;
     }
 
+    /** 执行页「开始锻造」：手动锻造一次（按 settings.batch() 批量）。 */
+    @Override
+    public boolean onAction(PluginContext context, int action) {
+        if (action != PluginActionPacket.SMITHING_NOW) {
+            return false;
+        }
+        ServerPlayer player = context.player();
+        if (player == null || !context.storageReachable()) {
+            return false;
+        }
+        FilterContent filter = context.pluginStack().get(ModComponents.FILTER_CONTENT);
+        if (filter == null) {
+            return false;
+        }
+        SmithingSettings settings = context.pluginStack().getOrDefault(
+            AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT);
+        return SmithingPlugin.run(context, player, filter, settings) > 0;
+    }
+
     @Override
     public void onPlayerTick(PluginContext context) {
         ServerPlayer player = context.player();
@@ -63,11 +83,17 @@ public class SmithingPlugin implements TerminalPlugin {
         }
         SmithingSettings settings = context.pluginStack().getOrDefault(
             AddonDataComponents.SMITHING_SETTINGS, SmithingSettings.DEFAULT);
+        SmithingPlugin.run(context, player, filter, settings);
+    }
+
+    /** 锻造成批执行；返回实际完成的次数。自动周期与「开始锻造」按钮共用这一段。 */
+    private static int run(PluginContext context, ServerPlayer player, FilterContent filter,
+                           SmithingSettings settings) {
         ServerLevel level = player.serverLevel();
         List<RecipeHolder<SmithingRecipe>> recipes = level.getRecipeManager()
             .getAllRecipesFor(RecipeType.SMITHING);
         if (recipes.isEmpty()) {
-            return;
+            return 0;
         }
 
         int done = 0;
@@ -93,6 +119,7 @@ public class SmithingPlugin implements TerminalPlugin {
                 }
             }
         }
+        return done;
     }
 
     /** 尝试用这个基底完成一次该配方的锻造。 */
@@ -130,22 +157,22 @@ public class SmithingPlugin implements TerminalPlugin {
             takenAddition = context.storage().extractFirst(
                 stack -> ItemStack.isSameItemSameComponents(stack, addition), 1);
             if (takenAddition.isEmpty()) {
-                SmithingPlugin.rollback(context, takenBase, takenTemplate);
+                SmithingPlugin.rollback(context, takenBase);
                 return false;
             }
         }
 
         SmithingRecipeInput input = new SmithingRecipeInput(takenTemplate, takenBase, takenAddition);
         if (!recipe.matches(input, level)) {
-            SmithingPlugin.rollback(context, takenBase, takenTemplate, takenAddition);
+            SmithingPlugin.rollback(context, takenBase, takenAddition);
             return false;
         }
         ItemStack result = recipe.assemble(input, level.registryAccess());
         if (result.isEmpty()) {
-            SmithingPlugin.rollback(context, takenBase, takenTemplate, takenAddition);
+            SmithingPlugin.rollback(context, takenBase, takenAddition);
             return false;
         }
-        context.insertIntoStorage(result);
+        context.deliver(result);
         context.pluginStack().set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
         return true;
     }
@@ -176,7 +203,7 @@ public class SmithingPlugin implements TerminalPlugin {
     private static void rollback(PluginContext context, ItemStack... stacks) {
         for (ItemStack stack : stacks) {
             if (!stack.isEmpty()) {
-                context.insertIntoStorage(stack);
+                context.deliver(stack);
             }
         }
     }

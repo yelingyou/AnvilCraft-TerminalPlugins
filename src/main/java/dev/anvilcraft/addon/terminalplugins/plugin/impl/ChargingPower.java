@@ -35,31 +35,33 @@ import java.util.UUID;
  * 插件被拆下 / 关闭后由 {@link #sweep(MinecraftServer)} 定期回收，不会一直占着电网功率。</p>
  */
 public final class ChargingPower {
-    private static final Map<UUID, Integer> RESERVED = new HashMap<>();
+    /** 保存「加进去的那个实例」：本体的集合是 IdentityHashMap 支撑的，用新建的等值对象删不掉。 */
+    private static final Map<UUID, DynamicPowerComponent.PowerConsumption> RESERVED = new HashMap<>();
 
     private ChargingPower() {
     }
 
     static void reserve(ServerPlayer player, DynamicPowerComponent component, int kw) {
         UUID id = player.getUUID();
-        Integer previous = ChargingPower.RESERVED.get(id);
-        if (previous != null && previous == kw) {
+        DynamicPowerComponent.PowerConsumption previous = ChargingPower.RESERVED.get(id);
+        if (previous != null && previous.amount() == kw) {
             return;
         }
         if (previous != null) {
-            component.getPowerConsumptions().remove(new DynamicPowerComponent.PowerConsumption(previous));
+            component.getPowerConsumptions().remove(previous);
         }
-        component.getPowerConsumptions().add(new DynamicPowerComponent.PowerConsumption(kw));
-        ChargingPower.RESERVED.put(id, kw);
+        DynamicPowerComponent.PowerConsumption consumption = new DynamicPowerComponent.PowerConsumption(kw);
+        component.getPowerConsumptions().add(consumption);
+        ChargingPower.RESERVED.put(id, consumption);
     }
 
     static void release(ServerPlayer player) {
-        Integer previous = ChargingPower.RESERVED.remove(player.getUUID());
+        DynamicPowerComponent.PowerConsumption previous = ChargingPower.RESERVED.remove(player.getUUID());
         if (previous == null) {
             return;
         }
         DynamicPowerComponent component = IDynamicPowerComponentHolder.of(player).anvilcraft$getPowerComponent();
-        component.getPowerConsumptions().remove(new DynamicPowerComponent.PowerConsumption(previous));
+        component.getPowerConsumptions().remove(previous);
     }
 
     /**

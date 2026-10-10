@@ -57,13 +57,12 @@ public final class PluginExecViews {
                      int pluginIndex, int x, int y) {
         PluginSample sample = plugin.getOrDefault(AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
         graphics.drawString(minecraft.font, PluginExecViews.tr("screen.anvilcraft_terminal_plugins.exec.input"),
-            x, y + 5, 0xFF9A9AA4, false);
+            x, y + 5, PanelStyle.TEXT_DIM, false);
         ctx.ghostSlot(graphics, x + 28, y, sample.sample(), pluginIndex, -1,
             PluginActionPacket.SET_SAMPLE_SLOT, "screen.anvilcraft_terminal_plugins.panel.input_slot_tip");
         graphics.drawString(minecraft.font, PluginExecViews.tr("screen.anvilcraft_terminal_plugins.exec.output"),
-            x + 50, y + 5, 0xFF9A9AA4, false);
-        graphics.fill(x + 78, y, x + 94, y + 16, 0xFF4E7A4E);
-        graphics.fill(x + 79, y + 1, x + 93, y + 15, 0xFF2A3329);
+            x + 50, y + 5, PanelStyle.TEXT_DIM, false);
+        PanelStyle.readOnlySlot(graphics, x + 78, y, 16);
         if (!sample.lastOutput().isEmpty()) {
             graphics.renderItem(sample.lastOutput(), x + 79, y + 1);
         }
@@ -74,11 +73,10 @@ public final class PluginExecViews {
     static int labeledSlot(PluginSettingsView.Ctx ctx, GuiGraphics graphics, Minecraft minecraft,
                            int x, int y, int width, String labelKey, ItemStack shown,
                            int pluginIndex, int action, String tipKey) {
-        graphics.drawString(minecraft.font, PluginExecViews.tr(labelKey), x, y + 5, 0xFF9A9AA4, false);
+        graphics.drawString(minecraft.font, PluginExecViews.tr(labelKey), x, y + 5, PanelStyle.TEXT_DIM, false);
         int slotX = x + width - 16;
         if (action < 0) {
-            graphics.fill(slotX, y, slotX + 16, y + 16, 0xFF4E7A4E);
-            graphics.fill(slotX + 1, y + 1, slotX + 15, y + 15, 0xFF2A3329);
+            PanelStyle.readOnlySlot(graphics, slotX, y, 16);
             if (!shown.isEmpty()) {
                 graphics.renderItem(shown, slotX + 1, y + 1);
             }
@@ -177,7 +175,7 @@ public final class PluginExecViews {
             int slotY = PluginExecViews.slots(ctx, graphics, minecraft, plugin, pluginIndex, x, y);
             graphics.drawString(minecraft.font, PluginExecViews.tr(
                 "screen.anvilcraft_terminal_plugins.exec.auto", settings.batch()),
-                x, slotY + 2, 0xFF9A9AA4, false);
+                x, slotY + 2, PanelStyle.TEXT_DIM, false);
         }
     }
 
@@ -200,7 +198,7 @@ public final class PluginExecViews {
                     "screen.anvilcraft_terminal_plugins.panel.charging_progress",
                     settings.activeRecipe(),
                     settings.progress());
-            graphics.drawString(minecraft.font, progress, x, y + 22, 0xFF9A9AA4, false);
+            graphics.drawString(minecraft.font, progress, x, y + 22, PanelStyle.TEXT_DIM, false);
         }
     }
 }

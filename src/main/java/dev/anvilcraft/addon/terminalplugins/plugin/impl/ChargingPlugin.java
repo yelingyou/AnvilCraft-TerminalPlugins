@@ -177,13 +177,20 @@ public class ChargingPlugin implements TerminalPlugin {
             pluginStack.set(AddonDataComponents.CHARGING_SETTINGS, settings.cleared());
             return;
         }
-        ItemStack result = recipe.getResult().copy();
+        // 用 assemble()：本体的充电配方在组装时会做额外处理（例如把附魔转移到产物上）
+        ServerPlayer owner = context.player();
+        ItemStack result = owner == null
+            ? recipe.getResult().copy()
+            : recipe.assemble(
+                new net.minecraft.world.item.crafting.SingleRecipeInput(input),
+                owner.serverLevel().registryAccess()
+            );
         if (result.isEmpty()) {
-            context.insertIntoStorage(input);
+            context.deliver(input);
             pluginStack.set(AddonDataComponents.CHARGING_SETTINGS, settings.cleared());
             return;
         }
-        context.insertIntoStorage(result);
+        context.deliver(result);
         pluginStack.set(AddonDataComponents.PLUGIN_SAMPLE, sample.withOutput(result.copy()));
         pluginStack.set(AddonDataComponents.CHARGING_SETTINGS, settings.cleared());
     }

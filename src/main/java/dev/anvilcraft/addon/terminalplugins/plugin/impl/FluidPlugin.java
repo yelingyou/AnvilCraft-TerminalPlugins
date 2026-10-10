@@ -78,10 +78,10 @@ public class FluidPlugin implements TerminalPlugin {
         }
         ItemStack emptied = wrapper.fillFromItem(container.copy());
         if (emptied == null || emptied.isEmpty() || handler.getFluid().getAmount() <= before) {
-            context.insertIntoStorage(container);
+            context.deliver(container);
             return false;
         }
-        context.insertIntoStorage(emptied);
+        context.deliver(emptied);
         return true;
     }
 
@@ -98,10 +98,10 @@ public class FluidPlugin implements TerminalPlugin {
         }
         ItemStack filled = wrapper.drainToItem(empty.copy());
         if (filled == null || filled.isEmpty() || handler.getFluid().getAmount() >= before) {
-            context.insertIntoStorage(empty);
+            context.deliver(empty);
             return false;
         }
-        context.insertIntoStorage(filled);
+        context.deliver(filled);
         return true;
     }
 

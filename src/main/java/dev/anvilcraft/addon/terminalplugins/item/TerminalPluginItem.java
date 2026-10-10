@@ -51,7 +51,9 @@ public class TerminalPluginItem extends Item {
     private final PluginKind kind;
 
     public TerminalPluginItem(PluginKind kind, Properties properties) {
-        super(properties);
+        // 插件必须一枚一格：终端上的插件是「条目」而不是堆叠，若能堆叠，
+        // 把 64 枚一起装上会合并成 1 个条目，拆下时只退回 1 枚，其余会丢失。
+        super(properties.stacksTo(1));
         this.kind = kind;
     }
 

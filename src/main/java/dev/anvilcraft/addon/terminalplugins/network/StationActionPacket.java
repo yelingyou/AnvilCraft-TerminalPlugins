@@ -45,12 +45,29 @@ public record StationActionPacket(BlockPos pos, int action) implements CustomPac
 
     public static final IPayloadHandler<StationActionPacket> HANDLER = StationActionPacket::handle;
 
+    /** 玩家是否被允许操作该位置的安装台。 */
+    public static boolean isUsable(net.minecraft.server.level.ServerPlayer player, BlockPos pos) {
+        net.minecraft.server.level.ServerLevel level = player.serverLevel();
+        if (!level.hasChunkAt(pos)) {
+            return false;
+        }
+        return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
+    }
+
     public static void handle(StationActionPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!context.flow().isServerbound()) {
                 return;
             }
-            if (!(context.player().level().getBlockEntity(packet.pos()) instanceof PluginStationBlockEntity station)) {
+            if (!(context.player() instanceof net.minecraft.server.level.ServerPlayer player)) {
+                return;
+            }
+            // 安全校验：位置来自客户端，必须确认玩家就在安装台旁边（8 格内且区块已加载），
+            // 否则伪造的包可以在任意距离操作别人的安装台。
+            if (!StationActionPacket.isUsable(player, packet.pos())) {
+                return;
+            }
+            if (!(player.serverLevel().getBlockEntity(packet.pos()) instanceof PluginStationBlockEntity station)) {
                 return;
             }
             switch (packet.action()) {

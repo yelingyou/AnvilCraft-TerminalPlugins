@@ -140,9 +140,13 @@ public class AlchemyPlugin implements TerminalPlugin {
                 level.getRandom().nextFloat() * 0.1F + 0.9F
             );
         }
+        // 原版药水没有 craftRemainder，空瓶要自己还回去，否则玻璃瓶会凭空消失
         ItemStack remainder = potion.getCraftingRemainingItem();
+        if (remainder.isEmpty() && (potion.is(Items.POTION) || potion.is(Items.OMINOUS_BOTTLE))) {
+            remainder = new ItemStack(Items.GLASS_BOTTLE);
+        }
         if (!remainder.isEmpty()) {
-            context.insertIntoStorage(remainder.copy());
+            context.deliver(remainder.copy());
         }
     }
 

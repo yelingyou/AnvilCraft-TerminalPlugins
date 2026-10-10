@@ -73,6 +73,11 @@ public class AutoCookingPlugin implements TerminalPlugin {
     ) {
         Predicate<ItemStack> isCookable = stack -> AutoCookingPlugin.recipeFor(manager, level, recipeType, stack) != null;
 
+        // 先确认存储里确实有能烹饪的原料，再决定是否消耗燃料；
+        // 否则「有燃料、没原料」时每周期白烧一份燃料。
+        if (context.storage().count(isCookable) <= 0) {
+            return;
+        }
         if (settings.consumeFuel() && !AutoCookingPlugin.consumeFuel(context, recipeType)) {
             return;
         }
@@ -86,17 +91,17 @@ public class AutoCookingPlugin implements TerminalPlugin {
             T recipe = AutoCookingPlugin.recipeFor(manager, level, recipeType, input);
             if (recipe == null) {
                 // 理论不可达：把物品放回，避免丢失
-                context.insertIntoStorage(input);
+                context.deliver(input);
                 return;
             }
             SingleRecipeInput recipeInput = new SingleRecipeInput(input);
             ItemStack result = recipe.assemble(recipeInput, level.registryAccess());
             ItemStack remaining = input.getCraftingRemainingItem();
             if (!remaining.isEmpty()) {
-                context.insertIntoStorage(remaining);
+                context.deliver(remaining);
             }
             if (!result.isEmpty()) {
-                context.insertIntoStorage(result);
+                context.deliver(result);
             }
         }
     }

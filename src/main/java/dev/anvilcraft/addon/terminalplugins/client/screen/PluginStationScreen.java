@@ -10,6 +10,7 @@ package dev.anvilcraft.addon.terminalplugins.client.screen;
 
 import dev.anvilcraft.addon.terminalplugins.block.entity.PluginStationBlockEntity;
 import dev.anvilcraft.addon.terminalplugins.client.TerminalPluginClientEvents;
+import dev.anvilcraft.addon.terminalplugins.client.gui.PanelStyle;
 import dev.anvilcraft.addon.terminalplugins.inventory.PluginStationMenu;
 import dev.anvilcraft.addon.terminalplugins.network.StationActionPacket;
 import net.minecraft.client.Minecraft;
@@ -32,18 +33,13 @@ import java.util.List;
  * <ul>
  *   <li>所有坐标都来自 {@link PluginStationMenu} 的布局常量，绘制与槽位共用同一套数字；</li>
  *   <li>每个网格上方留 10 像素给标题文字，玩家背包标题与暂存槽之间留 16 像素空白；</li>
- *   <li>长提示一律放进按钮 tooltip，不画在面板上，任何缩放比例都不会压到别的东西。</li>
+ *   <li>长提示一律放进按钮 tooltip，不画在面板上，任何缩放比例都不会压到别的东西；</li>
+ *   <li>外观统一走 {@link PanelStyle}，与终端插件面板保持一致。</li>
  * </ul>
  */
 public class PluginStationScreen extends AbstractContainerScreen<PluginStationMenu> {
-    private static final int PANEL_COLOR = 0xFF1E1E22;
-    private static final int BORDER_COLOR = 0xFF6E6E78;
-    private static final int SLOT_BORDER = 0xFF8B8B8B;
-    private static final int SLOT_COLOR = 0xFF37373B;
-    private static final int GHOST_BORDER = 0xFF4E7A4E;
-    private static final int GHOST_COLOR = 0xFF2A3329;
-    private static final int TEXT_COLOR = 0xFFE0E0E6;
-    private static final int DIM_COLOR = 0xFF9A9AA4;
+    /** 顶部标题栏高度。 */
+    private static final int HEADER_HEIGHT = 16;
     /** 已安装插件最多显示几个图标。 */
     private static final int INSTALLED_ICONS = 6;
 
@@ -115,37 +111,38 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         int x = this.leftPos;
         int y = this.topPos;
-        graphics.fill(x - 1, y - 1, x + this.imageWidth + 1, y + this.imageHeight + 1, PluginStationScreen.BORDER_COLOR);
-        graphics.fill(x, y, x + this.imageWidth, y + this.imageHeight, PluginStationScreen.PANEL_COLOR);
+        PanelStyle.panel(graphics, x - 1, y - 1, this.imageWidth + 2, this.imageHeight + 2);
+        PanelStyle.header(graphics, x, y, this.imageWidth, PluginStationScreen.HEADER_HEIGHT);
+        // 所有真实槽位（终端槽、暂存槽、玩家背包）统一画成斜角方格
         for (Slot slot : this.menu.slots) {
-            PluginStationScreen.drawSlot(graphics, x + slot.x - 1, y + slot.y - 1);
+            PanelStyle.slot(graphics, x + slot.x - 1, y + slot.y - 1, 18, false);
         }
-        // 已安装插件：终端右侧一行幽灵槽
-        List<ItemStack> plugins = this.installed();
+        // 已安装插件：终端右侧一行只读槽
         for (int index = 0; index < PluginStationScreen.INSTALLED_ICONS; index++) {
-            PluginStationScreen.drawGhostSlot(
+            PanelStyle.readOnlySlot(
                 graphics,
+                x + PluginStationMenu.TERMINAL_SLOT_X + 19 + index * 18,
+                y + PluginStationMenu.TERMINAL_SLOT_Y - 1,
+                18
+            );
+        }
+        List<ItemStack> plugins = this.installed();
+        for (int index = 0; index < Math.min(plugins.size(), PluginStationScreen.INSTALLED_ICONS); index++) {
+            graphics.renderItem(
+                plugins.get(index),
                 x + PluginStationMenu.TERMINAL_SLOT_X + 20 + index * 18,
                 y + PluginStationMenu.TERMINAL_SLOT_Y
             );
         }
-        for (int index = 0; index < Math.min(plugins.size(), PluginStationScreen.INSTALLED_ICONS); index++) {
-            graphics.renderItem(
-                plugins.get(index),
-                x + PluginStationMenu.TERMINAL_SLOT_X + 21 + index * 18,
-                y + PluginStationMenu.TERMINAL_SLOT_Y + 1
-            );
-        }
     }
 
-    private static void drawSlot(GuiGraphics graphics, int x, int y) {
-        graphics.fill(x, y, x + 18, y + 18, PluginStationScreen.SLOT_BORDER);
-        graphics.fill(x + 1, y + 1, x + 17, y + 17, PluginStationScreen.SLOT_COLOR);
-    }
-
-    private static void drawGhostSlot(GuiGraphics graphics, int x, int y) {
-        graphics.fill(x, y, x + 18, y + 18, PluginStationScreen.GHOST_BORDER);
-        graphics.fill(x + 1, y + 1, x + 17, y + 17, PluginStationScreen.GHOST_COLOR);
+    @Override
+    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+        // 默认标签是深灰色，在深色面板上几乎看不清，这里统一换成面板配色
+        graphics.drawString(this.font, this.title, this.titleLabelX, PluginStationScreen.HEADER_HEIGHT / 2 - 4,
+            PanelStyle.TEXT, true);
+        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY,
+            PanelStyle.TEXT_DIM, false);
     }
 
     @Override
@@ -160,8 +157,8 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
             Component.translatable("screen.anvilcraft_terminal_plugins.station.terminal"),
             left + 8,
             top + PluginStationMenu.TERMINAL_SLOT_Y - 10,
-            PluginStationScreen.DIM_COLOR,
-            false
+            PanelStyle.TEXT_DIM,
+            true
         );
         graphics.drawString(
             this.font,
@@ -170,20 +167,19 @@ public class PluginStationScreen extends AbstractContainerScreen<PluginStationMe
                 this.installed().size(),
                 PluginStationBlockEntity.PLUGIN_SLOTS
             ),
-            left + PluginStationMenu.TERMINAL_SLOT_X + 19,
+            left + PluginStationMenu.TERMINAL_SLOT_X + 18,
             top + PluginStationMenu.TERMINAL_SLOT_Y - 10,
-            PluginStationScreen.DIM_COLOR,
-            false
+            PanelStyle.TEXT_DIM,
+            true
         );
         graphics.drawString(
             this.font,
             Component.translatable("screen.anvilcraft_terminal_plugins.station.staging_slots"),
             left + 8,
             top + PluginStationMenu.STAGING_Y - 10,
-            PluginStationScreen.DIM_COLOR,
-            false
+            PanelStyle.TEXT_DIM,
+            true
         );
-        // 标题与「物品」标签由原版 renderLabels 绘制（inventoryLabelY 已避开暂存槽）
         this.renderTooltip(graphics, mouseX, mouseY);
     }
 }

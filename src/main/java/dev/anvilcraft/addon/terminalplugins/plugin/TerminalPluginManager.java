@@ -48,7 +48,8 @@ public final class TerminalPluginManager {
         if (installed.size() >= max) {
             return false;
         }
-        terminal.set(AddonDataComponents.INSTALLED_PLUGINS, installed.with(plugin));
+        // 只装入 1 枚，避免历史上堆叠过的插件把整叠并成一个条目
+        terminal.set(AddonDataComponents.INSTALLED_PLUGINS, installed.with(plugin.copyWithCount(1)));
         return true;
     }
 

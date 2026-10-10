@@ -174,7 +174,7 @@ public class AnvilProcessPlugin implements TerminalPlugin {
             return false;
         }
         for (ItemStack stack : produced) {
-            context.insertIntoStorage(stack);
+            context.deliver(stack);
         }
         // 输出槽：把这次的产物写回插件物品，玩家在「执行」页能直接看到
         context.pluginStack().set(
@@ -195,7 +195,7 @@ public class AnvilProcessPlugin implements TerminalPlugin {
 
     private static void rollback(PluginContext context, List<ItemStack> taken) {
         for (ItemStack stack : taken) {
-            context.insertIntoStorage(stack);
+            context.deliver(stack);
         }
     }
 }
