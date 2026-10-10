@@ -162,6 +162,32 @@ public final class PanelStyle {
         graphics.fill(x + 1, y + 2, x + 2, y + 3, on ? PanelStyle.DOT_ON : PanelStyle.DOT_OFF);
     }
 
+    /**
+     * 几何箭头：上移 / 下移按钮用。
+     *
+     * <p>不画「↑」「↓」字形：这两个符号来自字体回退，不同字体包与缩放下的
+     * 字形宽度、基线都不一样，会出现「文字对不上按钮」的错位。三角形由矩形堆出来，
+     * 在任何环境下位置都一样。</p>
+     */
+    public static void arrow(GuiGraphics graphics, int x, int y, boolean up, boolean hovered) {
+        int color = hovered ? PanelStyle.ACCENT_LIGHT : PanelStyle.TEXT;
+        for (int row = 0; row < 5; row++) {
+            // 上箭头：第一行只有中间一像素（尖端朝上），最后一行最宽；下箭头反过来
+            int half = up ? row + 1 : 5 - row;
+            graphics.fill(x + 4 - half, y + row, x + 4 + half, y + row + 1, color);
+        }
+    }
+
+    /** 返回箭头：指向左边的三角形。 */
+    public static void backArrow(GuiGraphics graphics, int x, int y, boolean hovered) {
+        int color = hovered ? PanelStyle.ACCENT_LIGHT : PanelStyle.TEXT;
+        for (int col = 0; col < 5; col++) {
+            // 尖端在左：第一列只有中间一像素，向右逐渐变高
+            int half = col + 1;
+            graphics.fill(x + col, y + 5 - half, x + col + 1, y + 5 + half, color);
+        }
+    }
+
     /** 拖动把手：三道横线。 */
     public static void grip(GuiGraphics graphics, int x, int y, int width, boolean hovered) {
         int color = hovered ? PanelStyle.ACCENT_LIGHT : PanelStyle.TEXT_DIM;

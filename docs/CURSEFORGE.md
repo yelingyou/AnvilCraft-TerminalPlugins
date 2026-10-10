@@ -44,11 +44,47 @@
 ## 四、自动化（推荐：先修好仓库里已有的 mc-publish）
 
 说明：**Minotaur 只能发 Modrinth，不能发 CurseForge**，所以本仓库走的是 `Kir-Antipov/mc-publish`。
-`.github/workflows/release.yml` 里已经接好了 mc-publish（同时发 Modrinth 与 CurseForge），本次已修正三处问题：
+`.github/workflows/release.yml` 里已经接好了 mc-publish（同时发 Modrinth 与 CurseForge），但有四处需要修改：
 
-1. `if: ${{ steps.properties.outputs.upload }}` 在 GitHub Actions 里恒为真（`"false"` 是非空字符串），已改成 `== 'true'`；
-2. 依赖行 `anvilcraft@1.21.1-1.5.0` 与本体要求不符，已改成 `anvilcraft(required){curseforge:986251}`；
-3. 补上 CurseForge 必需的 `environment: client | server` 与 `loaders: neoforge`，并把 `continue-on-error` 改为 false 以免静默失败。
+1. `if: ${{ steps.properties.outputs.upload }}` 在 GitHub Actions 里恒为真（`"false"` 是非空字符串），要改成 `== 'true'`；
+2. 依赖行 `anvilcraft@1.21.1-1.5.0` 与本体要求不符，要改成 `anvilcraft(required){curseforge:986251}`；
+3. 要补上 CurseForge 必需的 `environment: client | server` 与 `loaders: neoforge`；
+4. `continue-on-error: true` 会让发布失败被静默吞掉，建议改为 false。
+
+修改后的发布步骤应为（其余部分不变）：
+
+```yaml
+      - name: publish neoforge mc mod
+        uses: Kir-Antipov/mc-publish@v3.3.1
+        if: ${{ steps.properties.outputs.upload == 'true' }}
+        continue-on-error: false
+        with:
+          name: "${{ steps.properties.outputs.mod_name }} For NeoForge v${{ steps.version.outputs.version }}"
+          version: ${{ steps.version.outputs.version }}
+          game-versions: 1.21.1
+          loaders: neoforge
+          version-type: ${{ env.VERSION_TYPE }}
+          java: 21
+          environment: client | server
+          fail-mode: skip
+          changelog: ${{ github.event.release.body }}
+
+          modrinth-id: ${{ steps.properties.outputs.modrinth_id }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-featured: true
+
+          curseforge-id: ${{ steps.properties.outputs.curseforge_id }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          dependencies: |
+            anvilcraft(required){curseforge:986251}
+
+          files: |
+            build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+```
+
+注意：修改 `.github/workflows/` 下的文件需要带 `workflow` 权限的 token（或在 GitHub 网页上直接用编辑器改）。
+本次推送所用的 token 没有该权限，所以这一步需要你在网页上应用上面的补丁。
 
 你还需要做三步（都需要你账号上的信息）：
 

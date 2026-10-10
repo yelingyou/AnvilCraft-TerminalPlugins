@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private static final int BUTTON_WIDTH = 52;
     private static final int BUTTON_HEIGHT = 14;
-    private static final int PANEL_WIDTH = 158;
+    private static final int PANEL_WIDTH = 176;
     private static final int DRAG_THRESHOLD = 3;
     private static final int VISIBLE_ROWS = 5;
     private static final String POSITION_FILE = "anvilcraft_terminal_plugins_panel.txt";
@@ -469,7 +469,7 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
             if (backHovered) {
                 graphics.fill(x + 2, y + 2, x + 14, y + 14, PanelStyle.BUTTON_HOVER_TOP);
             }
-            graphics.drawString(minecraft.font, "<", x + 5, y + 5, PanelStyle.TEXT, false);
+            PanelStyle.backArrow(graphics, x + 4, y + 4, backHovered);
             String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 62
                 ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 62)
                 : selectedPlugin.getHoverName().getString();
@@ -535,33 +535,57 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, PanelStyle.TEXT_DIM, false);
         }
 
+        // 按钮宽度按「实测文字宽度 + 内边距」计算：中文两字比拉丁字符宽得多，
+        // 写死宽度会把标签截断，看起来就像文字没有对上按钮。
         int buttonY = rowY + 3;
         int buttonX = x + 4;
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 22,
-            TerminalPluginManager.isEnabled(selectedPlugin)
-                ? "screen.anvilcraft_terminal_plugins.panel.disable"
-                : "screen.anvilcraft_terminal_plugins.panel.enable",
+        String toggleKey = TerminalPluginManager.isEnabled(selectedPlugin)
+            ? "screen.anvilcraft_terminal_plugins.panel.disable"
+            : "screen.anvilcraft_terminal_plugins.panel.enable";
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY,
+            this.fitWidth(minecraft, toggleKey), toggleKey,
             PluginActionPacket.TOGGLE_ENABLED, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14,
-            "screen.anvilcraft_terminal_plugins.panel.up", PluginActionPacket.MOVE_UP, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 14,
-            "screen.anvilcraft_terminal_plugins.panel.down", PluginActionPacket.MOVE_DOWN, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 20,
-            "screen.anvilcraft_terminal_plugins.panel.remove", PluginActionPacket.REMOVE, this.selected, -1, mouseX, mouseY);
-        buttonX = this.button(graphics, minecraft, buttonX, buttonY, 24,
-            "screen.anvilcraft_terminal_plugins.panel.settings", TerminalPluginPanel.LOCAL_SETTINGS, this.selected, -1, mouseX, mouseY);
+        buttonX = this.arrowButton(graphics, minecraft, buttonX, buttonY,
+            PluginActionPacket.MOVE_UP, true, mouseX, mouseY);
+        buttonX = this.arrowButton(graphics, minecraft, buttonX, buttonY,
+            PluginActionPacket.MOVE_DOWN, false, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY,
+            this.fitWidth(minecraft, "screen.anvilcraft_terminal_plugins.panel.remove"),
+            "screen.anvilcraft_terminal_plugins.panel.remove",
+            PluginActionPacket.REMOVE, this.selected, -1, mouseX, mouseY);
+        buttonX = this.button(graphics, minecraft, buttonX, buttonY,
+            this.fitWidth(minecraft, "screen.anvilcraft_terminal_plugins.panel.settings"),
+            "screen.anvilcraft_terminal_plugins.panel.settings",
+            TerminalPluginPanel.LOCAL_SETTINGS, this.selected, -1, mouseX, mouseY);
         if (selectedPlugin.getItem() instanceof TerminalPluginItem selectedItem
             && PluginExecViews.has(selectedItem.kind())) {
-            String execLabel = TerminalPluginPanel.tr("screen.anvilcraft_terminal_plugins.panel.execute");
-            boolean execHovered = mouseX >= buttonX && mouseX < buttonX + 26
+            String execKey = "screen.anvilcraft_terminal_plugins.panel.execute";
+            String execLabel = TerminalPluginPanel.tr(execKey);
+            int execWidth = this.fitWidth(minecraft, execKey);
+            boolean execHovered = mouseX >= buttonX && mouseX < buttonX + execWidth
                                   && mouseY >= buttonY && mouseY < buttonY + 12;
-            PanelStyle.button(graphics, minecraft.font, buttonX, buttonY, 26, 12, execLabel, execHovered, true, true);
-            this.addRegion(new Region(buttonX, buttonY, 26, 12, TerminalPluginPanel.LOCAL_EXECUTE, this.selected, -1), 0.0F,
+            PanelStyle.button(graphics, minecraft.font, buttonX, buttonY, execWidth, 12, execLabel, execHovered, true, true);
+            this.addRegion(new Region(buttonX, buttonY, execWidth, 12, TerminalPluginPanel.LOCAL_EXECUTE, this.selected, -1), 0.0F,
                 "screen.anvilcraft_terminal_plugins.panel.execute_tip");
         }
 
         this.renderTips(graphics, minecraft, mouseX, mouseY);
         this.renderFooter(graphics, minecraft, x, y + height);
+    }
+
+    /** 按钮宽度：至少 26，且保证「标签 + 左右各 4 像素」放得下，避免中文被截断。 */
+    private int fitWidth(Minecraft minecraft, String translationKey) {
+        return Math.max(26, minecraft.font.width(TerminalPluginPanel.tr(translationKey)) + 8);
+    }
+
+    /** 上移 / 下移按钮：固定 12 像素方块，箭头用几何图形画，不受字体字形影响。 */
+    private int arrowButton(GuiGraphics graphics, Minecraft minecraft, int x, int y, int action, boolean up,
+                            int mouseX, int mouseY) {
+        boolean hovered = mouseX >= x && mouseX < x + 12 && mouseY >= y && mouseY < y + 12;
+        PanelStyle.button(graphics, minecraft.font, x, y, 12, 12, "", hovered, false, true);
+        PanelStyle.arrow(graphics, x + 2, y + 3, up, hovered);
+        this.addRegion(new Region(x, y, 12, 12, action, this.selected, -1), 0.0F, null);
+        return x + 14;
     }
 
     private int button(GuiGraphics graphics, Minecraft minecraft, int x, int y, int width, String translationKey,
