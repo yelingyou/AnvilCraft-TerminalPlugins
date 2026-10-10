@@ -52,7 +52,8 @@ public class PluginStationMenu extends AbstractContainerMenu {
     public static final int BUTTON_Y = 56;
     public static final int BUTTON_WIDTH = 70;
     public static final int BUTTON_HEIGHT = 16;
-    public static final int BUTTON_GAP = 4;
+    /** 行距与暂存槽一致（18 像素），三个按钮才会和 3×3 暂存槽逐行对齐。 */
+    public static final int BUTTON_GAP = 2;
 
     private final BlockPos pos;
     private final IItemHandler stationInventory;

@@ -31,6 +31,14 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
     private static final int PANEL_WIDTH = 176;
     private static final int DRAG_THRESHOLD = 3;
     private static final int VISIBLE_ROWS = 5;
+    /** 列表行高：16 像素图标 + 上下各 1 像素留白，图标才完整落在行内。 */
+    private static final int ROW_HEIGHT = 18;
+    /** 底部按钮行高。 */
+    private static final int BUTTON_ROW_HEIGHT = 12;
+    /** 面板底部留给拖动提示的高度。 */
+    private static final int FOOTER_HEIGHT = 16;
+    /** 内容左边距：标题、图标、按钮共用同一条竖线，看起来才是「对齐」的。 */
+    private static final int MARGIN = 6;
     private static final String POSITION_FILE = "anvilcraft_terminal_plugins_panel.txt";
 
     // 本地动作（非网络动作，用负数与 PluginActionPacket 的动作区分）
@@ -179,7 +187,8 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
         }
         if (!this.settingsOpen || plugins.isEmpty()) {
             int rows = Math.min(plugins.size(), TerminalPluginPanel.VISIBLE_ROWS);
-            return TerminalPluginPanel.CONTENT_OFFSET + Math.max(rows, 1) * 14 + 4 + 15 + 12;
+            return TerminalPluginPanel.CONTENT_OFFSET + Math.max(rows, 1) * TerminalPluginPanel.ROW_HEIGHT
+                   + 3 + TerminalPluginPanel.BUTTON_ROW_HEIGHT + TerminalPluginPanel.FOOTER_HEIGHT;
         }
         ItemStack plugin = plugins.get(Math.clamp(this.selected, 0, plugins.size() - 1));
         int content = plugin.getItem() instanceof TerminalPluginItem item
@@ -510,36 +519,40 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
         for (int index = 0; index < rows; index++) {
             ItemStack plugin = plugins.get(index);
             boolean hovered = mouseX >= x + 2 && mouseX < x + TerminalPluginPanel.PANEL_WIDTH - 2
-                              && mouseY >= rowY && mouseY < rowY + 14;
+                              && mouseY >= rowY && mouseY < rowY + TerminalPluginPanel.ROW_HEIGHT;
             PanelStyle.row(
-                graphics, x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14,
+                graphics, x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, TerminalPluginPanel.ROW_HEIGHT,
                 index == this.selected, hovered
             );
-            graphics.renderItem(plugin, x + 7, rowY - 1);
+            // 图标 16 像素、行高 18 像素：上下各留 1 像素，图标与行框、文字基线都对齐
+            graphics.renderItem(plugin, x + TerminalPluginPanel.MARGIN, rowY + 1);
             boolean enabled = TerminalPluginManager.isEnabled(plugin);
-            PanelStyle.dot(graphics, x + 27, rowY + 6, enabled);
+            PanelStyle.dot(graphics, x + TerminalPluginPanel.MARGIN + 20, rowY + 8, enabled);
             String name = plugin.getHoverName().getString();
-            String label = minecraft.font.width(name) > TerminalPluginPanel.PANEL_WIDTH - 54
-                ? minecraft.font.plainSubstrByWidth(name, TerminalPluginPanel.PANEL_WIDTH - 54)
+            String label = minecraft.font.width(name) > TerminalPluginPanel.PANEL_WIDTH - 46
+                ? minecraft.font.plainSubstrByWidth(name, TerminalPluginPanel.PANEL_WIDTH - 46)
                 : name;
-            graphics.drawString(minecraft.font, label, x + 33, rowY + 3,
+            graphics.drawString(minecraft.font, label, x + TerminalPluginPanel.MARGIN + 26, rowY + 5,
                 enabled ? PanelStyle.TEXT : PanelStyle.TEXT_DISABLED, false);
             if (!enabled) {
-                graphics.drawString(minecraft.font, "off", x + TerminalPluginPanel.PANEL_WIDTH - 20, rowY + 3,
+                graphics.drawString(minecraft.font, "off",
+                    x + TerminalPluginPanel.PANEL_WIDTH - 8 - minecraft.font.width("off"), rowY + 5,
                     PanelStyle.TEXT_DISABLED, false);
             }
-            this.addRegion(new Region(x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, 14, TerminalPluginPanel.LOCAL_SELECT, index, -1), 0.0F, null);
-            rowY += 14;
+            this.addRegion(new Region(x + 2, rowY, TerminalPluginPanel.PANEL_WIDTH - 4, TerminalPluginPanel.ROW_HEIGHT, TerminalPluginPanel.LOCAL_SELECT, index, -1), 0.0F, null);
+            rowY += TerminalPluginPanel.ROW_HEIGHT;
         }
         if (plugins.size() > rows) {
-            graphics.drawString(minecraft.font, "+" + (plugins.size() - rows),
-                x + TerminalPluginPanel.PANEL_WIDTH - 16, rowY - 12, PanelStyle.TEXT_DIM, false);
+            String more = "+" + (plugins.size() - rows);
+            graphics.drawString(minecraft.font, more,
+                x + TerminalPluginPanel.PANEL_WIDTH - 10 - minecraft.font.width(more),
+                rowY - TerminalPluginPanel.ROW_HEIGHT + 5, PanelStyle.TEXT_DIM, false);
         }
 
         // 按钮宽度按「实测文字宽度 + 内边距」计算：中文两字比拉丁字符宽得多，
         // 写死宽度会把标签截断，看起来就像文字没有对上按钮。
         int buttonY = rowY + 3;
-        int buttonX = x + 4;
+        int buttonX = x + TerminalPluginPanel.MARGIN;
         String toggleKey = TerminalPluginManager.isEnabled(selectedPlugin)
             ? "screen.anvilcraft_terminal_plugins.panel.disable"
             : "screen.anvilcraft_terminal_plugins.panel.enable";
