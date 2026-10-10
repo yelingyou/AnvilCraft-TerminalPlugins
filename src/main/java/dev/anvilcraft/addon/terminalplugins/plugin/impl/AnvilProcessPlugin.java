@@ -21,6 +21,7 @@ import dev.anvilcraft.lib.v2.util.predicate.ItemIngredientPredicate;
 import dev.dubhe.anvilcraft.init.item.ModComponents;
 import dev.dubhe.anvilcraft.init.recipe.ModRecipeTypes;
 import dev.dubhe.anvilcraft.item.property.component.FilterContent;
+import dev.dubhe.anvilcraft.recipe.component.HasCauldronSimple;
 import dev.dubhe.anvilcraft.recipe.anvil.wrap.AbstractProcessRecipe;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -81,7 +82,17 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         for (int attempt = 0; attempt < settings.batch(); attempt++) {
             boolean crafted = false;
             for (RecipeHolder<AbstractProcessRecipe<?>> holder : recipes) {
-                if (AnvilProcessPlugin.craftOnce(context, level, holder.value(), filter)) {
+                boolean success;
+                try {
+                    success = AnvilProcessPlugin.craftOnce(context, level, holder.value(), filter);
+                } catch (RuntimeException exception) {
+                    // 单个配方出错（数据包异常等）只跳过它，不要让整批加工中断
+                    AnvilCraftTerminalPlugins.LOGGER.warn(
+                        "anvil-process 配方执行异常，已跳过: {}", holder.id(), exception
+                    );
+                    success = false;
+                }
+                if (success) {
                     crafted = true;
                     break;
                 }
@@ -120,10 +131,13 @@ public class AnvilProcessPlugin implements TerminalPlugin {
     /** 尝试用存储里的物品完成一次该配方；不满足条件就原样返回 false，不动存储。 */
     private static boolean craftOnce(PluginContext context, ServerLevel level,
                                      AbstractProcessRecipe<?> recipe, FilterContent filter) {
-        // 需要炼药锅流体的配方跳过：存储物品的语境下没法诚实还原
-        // （需要特定方块的配方不再跳过 —— 本插件本来就是这些加工方式的「快捷化」）
-        if (recipe.getHasCauldron() != null
-            && (recipe.getHasCauldron().hasFluid() || recipe.getHasCauldron().ignited())) {
+        // 需要炼药锅流体的配方跳过：存储物品的语境下没法诚实还原。
+        // 注意必须走 property 上的可空读取：AbstractProcessRecipe#getHasCauldron() 内部是
+        // Objects.requireNonNull(...)，配方没配炼药锅时会直接抛 NullPointerException ——
+        // 之前整段加工都因此异常中断，表现就是「点了开始加工什么都不发生」。
+        HasCauldronSimple cauldron = recipe.getProperty().getHasCauldron();
+        if (cauldron != null && (cauldron.hasFluid() || cauldron.ignited())) {
+            AnvilProcessPlugin.debug("skip-cauldron type={}", recipe.getType());
             return false;
         }
         List<ItemIngredientPredicate> inputs = recipe.getInputItems();
