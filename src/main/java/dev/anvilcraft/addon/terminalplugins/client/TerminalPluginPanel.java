@@ -470,8 +470,8 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 graphics.fill(x + 2, y + 2, x + 14, y + 14, PanelStyle.BUTTON_HOVER_TOP);
             }
             PanelStyle.backArrow(graphics, x + 4, y + 4, backHovered);
-            String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 62
-                ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 62)
+            String name = minecraft.font.width(selectedPlugin.getHoverName()) > TerminalPluginPanel.PANEL_WIDTH - 76
+                ? minecraft.font.plainSubstrByWidth(selectedPlugin.getHoverName().getString(), TerminalPluginPanel.PANEL_WIDTH - 76)
                 : selectedPlugin.getHoverName().getString();
             graphics.renderItem(selectedPlugin, x + 16, y + 1);
             graphics.drawString(minecraft.font, name, x + 35, y + 5, PanelStyle.TEXT, true);
@@ -479,9 +479,10 @@ public class TerminalPluginPanel implements PluginSettingsView.Ctx {
                 ? "screen.anvilcraft_terminal_plugins.panel.execute"
                 : "screen.anvilcraft_terminal_plugins.panel.settings");
             int chipWidth = minecraft.font.width(pageName) + 6;
+            // 右边要给关闭按钮留出位置，否则页名标签会压到「✕」上
             PanelStyle.button(
                 graphics, minecraft.font,
-                x + TerminalPluginPanel.PANEL_WIDTH - 5 - chipWidth, y + 3, chipWidth, 12, pageName, false,
+                x + TerminalPluginPanel.PANEL_WIDTH - 19 - chipWidth, y + 3, chipWidth, 12, pageName, false,
                 this.executeOpen, true
             );
             if (selectedPlugin.getItem() instanceof TerminalPluginItem item) {
