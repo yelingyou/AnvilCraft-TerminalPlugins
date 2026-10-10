@@ -74,6 +74,22 @@ public class AnvilProcessPlugin implements TerminalPlugin {
         }
         ServerLevel level = context.player().serverLevel();
         List<RecipeHolder<AbstractProcessRecipe<?>>> recipes = AnvilProcessPlugin.recipes(level, settings.process());
+        // 输入槽里放了东西、但当期加工方式没有任何配方吃它时，自动切到「能吃下它」的加工方式，
+        // 避免玩家把原料放进输入槽、看到的就是「点了没反应」。（选错方式是最常见的困惑点）
+        PluginSample wanted = context.pluginStack().getOrDefault(
+            AddonDataComponents.PLUGIN_SAMPLE, PluginSample.EMPTY);
+        if (wanted.hasSample() && recipes.stream().noneMatch(holder -> AnvilProcessPlugin.acceptsSample(holder.value(), wanted))) {
+            AnvilProcessSettings.AnvilProcess better = AnvilProcessPlugin.findProcessFor(level, wanted.sample());
+            if (better != null) {
+                settings = settings.withProcess(better);
+                recipes = AnvilProcessPlugin.recipes(level, better);
+                context.pluginStack().set(AddonDataComponents.ANVIL_PROCESS_SETTINGS, settings);
+                AnvilCraftTerminalPlugins.LOGGER.info(
+                    "anvil-process 自动切换加工方式为 {}（输入槽物品只能这样加工）",
+                    better.getSerializedName()
+                );
+            }
+        }
         if (recipes.isEmpty()) {
             return false;
         }
@@ -210,6 +226,23 @@ public class AnvilProcessPlugin implements TerminalPlugin {
                 .withOutput(produced.get(0).copy())
         );
         return true;
+    }
+
+    /** 该配方的原料里是否有能吃下这个物品的（只看物品，不看数量）。 */
+    private static boolean acceptsSample(AbstractProcessRecipe<?> recipe, PluginSample sample) {
+        return recipe.getInputItems().stream().anyMatch(input -> input.testIgnoreCount(sample.sample()));
+    }
+
+    /** 在所有加工方式里找一个能吃下该物品的；找不到返回 null。 */
+    private static AnvilProcessSettings.AnvilProcess findProcessFor(ServerLevel level, ItemStack stack) {
+        for (AnvilProcessSettings.AnvilProcess candidate : AnvilProcessSettings.AnvilProcess.values()) {
+            for (RecipeHolder<AbstractProcessRecipe<?>> holder : AnvilProcessPlugin.recipes(level, candidate)) {
+                if (holder.value().getInputItems().stream().anyMatch(input -> input.testIgnoreCount(stack))) {
+                    return candidate;
+                }
+            }
+        }
+        return null;
     }
 
     /** 仅在开启 debugLogging 时输出，用于定位「点了开始加工但什么都没发生」。 */

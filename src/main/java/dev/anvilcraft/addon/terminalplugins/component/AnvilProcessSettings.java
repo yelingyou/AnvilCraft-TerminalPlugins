@@ -59,6 +59,10 @@ public record AnvilProcessSettings(AnvilProcess process, int batch) {
         return new AnvilProcessSettings(this.process, AnvilProcessSettings.BATCHES[0]);
     }
 
+    public AnvilProcessSettings withProcess(AnvilProcess value) {
+        return new AnvilProcessSettings(value, this.batch);
+    }
+
     public AnvilProcessSettings withBatch(int value) {
         return new AnvilProcessSettings(this.process, Math.clamp(value, 1, 64));
     }
