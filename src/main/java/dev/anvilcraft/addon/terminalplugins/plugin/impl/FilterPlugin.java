@@ -39,6 +39,13 @@ public class FilterPlugin implements TerminalPlugin {
         if (content == null) {
             return true;
         }
+        // 过滤表留空 = 没有配置任何规则 = 不过滤。
+        // 本体 FilterContent 的空白名单语义是「什么都不放行」，如果照搬，
+        // 刚做出来的过滤插件会把所有自动入库（含各种加工产物）全部拦下，
+        // 表现就是「处理物品的插件全都不能用」。
+        if (content.list().stream().allMatch(ItemStack::isEmpty)) {
+            return true;
+        }
         return content.filter(stack);
     }
 }

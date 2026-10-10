@@ -52,11 +52,12 @@ public class TerminalPluginEvents {
             TerminalStorage storage = TerminalStorageResolver.resolve(player, terminal);
             if (AnvilCraftTerminalPlugins.CONFIG.debugLogging) {
                 AnvilCraftTerminalPlugins.LOGGER.info(
-                    "plugin-dispatch tick={} terminal={} plugins={} storage={}",
+                    "plugin-dispatch tick={} terminal={} plugins={} storage={} types={}",
                     tick,
                     terminal.getHoverName().getString(),
                     plugins.size(),
-                    storage.isReachable() ? "reachable(" + storage.storages().size() + ")" : "UNREACHABLE"
+                    storage.isReachable() ? "reachable(" + storage.storages().size() + ")" : "UNREACHABLE",
+                    storage.isReachable() ? storage.types().size() : 0
                 );
             }
             for (ItemStack pluginStack : plugins) {
